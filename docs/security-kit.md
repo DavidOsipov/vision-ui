@@ -4,10 +4,12 @@
 [![Built with](https://img.shields.io/badge/Built%20with-Modern%20JS-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Security](https://img.shields.io/badge/Security-Hardened-brightgreen)](https://owasp.org/www-project-top-ten/)
 
-**SPDX-License-Identifier:** MIT  
-**SPDX-FileCopyrightText:** © 2025 David Osipov <personal@david-osipov.vision>  
-**Author ISNI:** 0000 0005 1802 960X  
-**Version:** 3.0.0
+*   **Author Website:** [david-osipov.vision](https://david-osipov.vision)
+*   **Author ISNI:** 0000 0005 1802 960X
+*   **ORCID:** [0009-0005-2713-9242](https://orcid.org/0009-0005-2713-9242)
+*   **VIAF:** [139173726847611590332](https://viaf.org/viaf/139173726847611590332/)
+*   **Wikidata:** [Q130604188](https://www.wikidata.org/wiki/Q130604188)
+*   **Version:** 3.0.0
 
 ---
 
