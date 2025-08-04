@@ -4,7 +4,7 @@
 // Author ISNI URL: https://isni.org/isni/000000051802960X
 // Version: 2.0.0
 
-import { secureDevLog, environment } from '../utils/secure-helpers.js';
+import { secureDevLog, environment } from '../utils/security-kit.js';
 
 /**
  * Configuration for the Enhanced Header Animator.
