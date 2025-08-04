@@ -85,12 +85,6 @@ A library is only as good as it is usable. `security-kit` is designed with the d
 *   ✅ Safe Environment Detection (Development vs. Production)
 *   ✅ CSP-Safe Structured Development Logging
 
-## Installation
-
-```bash
-npm install security-kit
-```
-
 ## API Documentation
 
 ### Custom Errors
