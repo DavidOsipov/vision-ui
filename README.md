@@ -84,6 +84,9 @@ Contributions, bug reports, and feature requests are welcome! Please see the [CO
 
 *   **Author:** This project was architected and directed by **David Osipov**, an AI-Driven B2B Lead Product Manager. You can learn more about my work and philosophy at [david-osipov.vision](https://david-osipov.vision).
 *   **ISNI:** 0000 0005 1802 960X ([International Standard Name Identifier](https://isni.org/isni/000000051802960X))
+*   **ORCID:** [0009-0005-2713-9242](https://orcid.org/0009-0005-2713-9242)
+*   **VIAF:** [139173726847611590332](https://viaf.org/viaf/139173726847611590332/)
+*   **Wikidata:** [Q130604188](https://www.wikidata.org/wiki/Q130604188)
 *   **Contact:** <personal@david-osipov.vision>
 *   **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard, which is a machine-readable way to declare licenses.
 
