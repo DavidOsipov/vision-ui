@@ -14,26 +14,30 @@ Only the latest version of the scripts available in the `main` branch of this re
 
 ---
 
-## 🛡️ Reporting a Vulnerability
+## 🛡️ How to Report a Vulnerability
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Please choose one of the following methods to report a vulnerability.
 
-If you believe you have discovered a security vulnerability, please report it to me privately to protect the project's users.
+### Method 1: GitHub Security Advisories (Preferred)
 
-### Private Reporting Channel
+The preferred method for reporting vulnerabilities is through a private GitHub Security Advisory. This is the most secure and efficient way to report issues as it provides a collaborative space for us to discuss and resolve the vulnerability privately.
 
-Please send a detailed email to:
-**security@david-osipov.vision**
+➡️ **[Create a new private vulnerability report](https://github.com/DavidOsipov/vision-ui/security/advisories/new)**
 
-### Encrypting Your Report (Recommended)
+### Method 2: PGP Encrypted Email (Alternative)
 
-For highly sensitive information, I strongly encourage you to encrypt your report using my PGP public key. This ensures that the details of the vulnerability are protected in transit.
+If you are unable to use GitHub Security Advisories, you can send a private, encrypted email to:
+**personal@david-osipov.vision**
+
+To ensure the confidentiality of your report, please encrypt your message using the PGP public key below.
 
 -   **PGP Public Key:** [`D3FC4983E500AC3F7F136EB80E55C4A47454E82E`](https://openpgpkey.david-osipov.vision/.well-known/openpgpkey/david-osipov.vision/D3FC4983E500AC3F7F136EB80E55C4A47454E82E.asc)
 
+---
+
 ### What to Include in Your Report
 
-To help me validate and fix the issue as quickly as possible, please include the following in your report:
+To help me validate and fix the issue as quickly as possible, please include the following in your report, regardless of the method you choose:
 
 -   **A clear and descriptive title** for your report.
 -   **The type of vulnerability** (e.g., Cross-Site Scripting, Insecure Randomness, Prototype Pollution).
@@ -52,7 +56,7 @@ When you report a vulnerability in accordance with this policy, I commit to the 
 -   I will provide an initial assessment of the vulnerability's validity and severity.
 -   I will keep you updated on the progress of the remediation efforts.
 -   I will notify you when a fix has been released.
--   I will publicly credit you for your discovery in the release notes and commit message, unless you prefer to remain anonymous.
+-   I will publicly credit you for your discovery in the security advisory and release notes, unless you prefer to remain anonymous.
 
 ---
 
