@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // SPDX-FileCopyrightText: © 2025 David Osipov <personal@david-osipov.vision>
+// Author Website: https://david-osipov.vision
 // Author ISNI: 0000 0005 1802 960X
 // Author ISNI URL: https://isni.org/isni/000000051802960X
 // Author ORCID: 0009-0005-2713-9242
