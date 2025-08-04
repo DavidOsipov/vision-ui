@@ -1,10 +1,5 @@
 # Security Kit
 
-[![NPM Version](https://img.shields.io/npm/v/security-kit.svg)](https://www.npmjs.com/package/security-kit)
-[![License](https://img.shields.io/npm/l/security-kit.svg)](https://spdx.org/licenses/MIT.html)
-[![Build Status](https://img.shields.io/travis/com/DavidOsipov/security-kit.svg)](https://travis-ci.com/DavidOsipov/security-kit)
-[![codecov](https://codecov.io/gh/DavidOsipov/security-kit/branch/main/graph/badge.svg)](https://codecov.io/gh/DavidOsipov/security-kit)
-
 **SPDX-License-Identifier:** MIT  
 **SPDX-FileCopyrightText:** © 2025 David Osipov <personal@david-osipov.vision>  
 **Author ISNI:** 0000 0005 1802 960X  
