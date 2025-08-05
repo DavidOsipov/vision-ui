@@ -15,8 +15,21 @@ const mockCrypto = {
   getRandomValues: vi.fn((array) => {
     // Fill the array with predictable, non-zero values for testing.
     for (let i = 0; i < array.length; i++) {
-      // This is safe in a test context where the array is always a TypedArray.
-      array[i] = (i + 1) * 10;
+      const value = (i + 1) * 10;
+      // Handle BigInt arrays correctly - check constructor name to avoid instanceof issues
+      if (
+        typeof BigUint64Array !== "undefined" &&
+        array instanceof BigUint64Array
+      ) {
+        array[i] = BigInt(value);
+      } else if (
+        array.constructor &&
+        array.constructor.name === "BigUint64Array"
+      ) {
+        array[i] = BigInt(value);
+      } else {
+        array[i] = value;
+      }
     }
     return array;
   }),
