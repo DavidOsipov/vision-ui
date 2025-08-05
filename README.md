@@ -1,5 +1,7 @@
 # Vision UI
 
+<img src="https://github.com/user-attachments/assets/ece0a7ee-0306-4eea-b8df-32764a867f71" width="600" height="300" alt="Vision UI project banner: A glowing neural network on the left sends a focused energy wave to a set of clean user interface wireframes on the right, symbolizing AI-driven development.">
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Security: Hardened](https://img.shields.io/badge/Security-Hardened-brightgreen)](./docs/03-security-kit.md)
@@ -13,8 +15,6 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
 
 [![DOI](https://zenodo.org/badge/1032156503.svg)](https://doi.org/10.5281/zenodo.16741212)
-
-<img src="https://github.com/user-attachments/assets/ece0a7ee-0306-4eea-b8df-32764a867f71" width="600" height="300" alt="Vision UI project banner: A glowing neural network on the left sends a focused energy wave to a set of clean user interface wireframes on the right, symbolizing AI-driven development.">
 
 Vision UI is a collection of enterprise-grade, dependency-free modules for modern web projects. Each component is engineered for maximum performance, security, and accessibility, designed to be dropped into any project (Astro, Eleventy, vanilla HTML) with minimal configuration.
 
