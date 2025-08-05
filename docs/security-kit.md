@@ -303,5 +303,3 @@ The library will not work in older environments like Internet Explorer.
 - **ISNI:** 0000 0005 1802 960X ([International Standard Name Identifier](https://isni.org/isni/000000051802960X))
 - **Contact:** <personal@david-osipov.vision>
 - **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard.
-
-```
