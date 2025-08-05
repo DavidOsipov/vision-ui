@@ -10,6 +10,7 @@
 # - Prettier: Ensures consistent code formatting.
 # - TypeScript Compiler (tsc): Performs strict type-checking based on JSDoc annotations and tsconfig.json.
 # - CodeQL: GitHub's deep semantic code analysis for finding security vulnerabilities.
+# - Vitest: Runs unit tests and generates code coverage reports.
 #
 # This workflow runs manually, on every new release, and weekly on Sunday.
 
@@ -69,6 +70,36 @@ jobs:
           jq -e . package.json > /dev/null
 
           echo "✅ All configuration files are well-formed."
+
+  # *** NEW JOB ADDED ***
+  # This job runs tests and generates a coverage report.
+  Test-and-Coverage:
+    needs: [Validate-Configs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests and generate coverage report
+        # Your 'test:coverage' script from package.json will be executed here.
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        # Pinned to commit SHA for v4.3.4 for security and reproducibility.
+        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          retention-days: 1
 
   Analyze:
     needs: [Validate-Configs]
@@ -139,7 +170,9 @@ jobs:
           retention-days: 1
 
   SonarQube:
-    needs: [Analyze]
+    # *** MODIFIED `needs` SECTION ***
+    # This job now depends on both Analyze and Test-and-Coverage.
+    needs: [Analyze, Test-and-Coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -153,7 +186,8 @@ jobs:
         # Pinned to commit SHA for v4.1.8 for security and reproducibility.
         uses: actions/download-artifact@448e3f862ab3ef47aa50ff917776823c9946035b
         with:
-          # Downloads all artifacts from the 'Analyze' job into the 'reports' directory.
+          # Downloads all artifacts from the 'Analyze' and 'Test-and-Coverage' jobs
+          # into the 'reports' directory.
           path: reports
 
       - name: Prepare SonarQube arguments
@@ -178,6 +212,17 @@ jobs:
           else
             echo "⚠️ CodeQL report not found."
           fi
+          
+          # *** NEW SECTION ADDED FOR COVERAGE ***
+          # --- Process Coverage Report ---
+          COVERAGE_REPORT="reports/coverage-report/lcov.info"
+          if [ -f "$COVERAGE_REPORT" ]; then
+            echo "✅ Found LCOV coverage report."
+            # The property sonar.javascript.lcov.reportPaths tells SonarQube where to find the coverage file.
+            SONAR_ARGS="$SONAR_ARGS -Dsonar.javascript.lcov.reportPaths=${COVERAGE_REPORT}"
+          else
+            echo "⚠️ LCOV coverage report not found."
+          fi
 
           # --- Add TypeScript Configuration ---
           if [ -f "tsconfig.json" ]; then
@@ -200,6 +245,8 @@ jobs:
             -Dsonar.projectKey=DavidOsipov_Vision-ui
             -Dsonar.organization=davidosipov
             -Dsonar.sources=src/
+            -Dsonar.tests=tests/
+            -Dsonar.test.inclusions=**/*.test.js,**/*.spec.js
             -Dsonar.sourceEncoding=UTF-8
             -Dsonar.verbose=false
             ${{ env.SONAR_EXTRA_ARGS }}
