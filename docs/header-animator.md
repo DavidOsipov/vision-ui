@@ -1,8 +1,8 @@
 # Header Animator
 
-[![License](https://img-shields.io/badge/License-MIT-blue.svg)](https://spdx.org/licenses/MIT.html)
-[![Built with](https://img-shields.io/badge/Built%20with-Modern%20JS-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Security](https://img-shields.io/badge/Security-Hardened-brightgreen)](https://owasp.org/www-project-top-ten/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://spdx.org/licenses/MIT.html)
+[![Built with](https://img.shields.io/badge/Built%20with-Modern%20JS-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Security](https://img.shields.io/badge/Security-Hardened-brightgreen)](https://owasp.org/www-project-top-ten/)
 
 *   **SPDX-License-Identifier:** MIT
 *   **SPDX-FileCopyrightText:** © 2025 David Osipov <personal@david-osipov.vision>
