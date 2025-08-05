@@ -63,4 +63,22 @@ export default [
       "@typescript-eslint/consistent-type-imports": "off", // Turn off for JS files
     },
   },
+
+  // Test files configuration
+  {
+    files: ["**/*.test.js", "**/*.spec.js", "**/tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        ...globals.jest,
+      },
+    },
+    rules: {
+      // Relax some rules for test files
+      "security/detect-object-injection": "off", // Mock objects often trigger this
+      "@typescript-eslint/no-unused-vars": "off", // Test variables are often intentionally unused
+      "no-unused-vars": "off",
+    },
+  },
 ];
