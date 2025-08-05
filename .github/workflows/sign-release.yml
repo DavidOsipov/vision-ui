@@ -23,7 +23,7 @@ jobs:
       # 2. Install Cosign, the generic Sigstore signing tool.
       # Pinned to the commit SHA for v3.5.0
       - name: Install Cosign
-        uses: sigstore/cosign-installer@961676426352a77711b6594c21a4a921a2b05247
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159
 
       # 3. Set up a Node.js environment.
       # Pinned to the commit SHA for v4.0.3
