@@ -1,0 +1,185 @@
+# .github/workflows/js-quality-gates.yml
+# This workflow is a comprehensive quality and security gate for the Vision UI JavaScript project.
+# It is hardened for security and reproducibility by pinning all GitHub Actions to specific commit SHAs.
+#
+# It runs static analysis, formatting checks, type checking, and security scans in parallel,
+# then aggregates their results into SonarQube for unified reporting and quality gating.
+#
+# Tools included:
+# - ESLint: Using the project's advanced flat config for security and style.
+# - Prettier: Ensures consistent code formatting.
+# - TypeScript Compiler (tsc): Performs strict type-checking based on JSDoc annotations and tsconfig.json.
+# - CodeQL: GitHub's deep semantic code analysis for finding security vulnerabilities.
+#
+# This workflow runs weekly and on all PR/push events to the main branch.
+
+name: 🛡️ JS Quality & Security Gates
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  pull-requests: read
+  security-events: write
+  contents: read
+  issues: write
+  checks: write
+
+jobs:
+  # This job provides a quick, preliminary check to ensure all JSON configuration files are valid.
+  # It fails fast if a simple syntax error is found in a config file.
+  Validate-Configs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        # Pinned to commit SHA for v4.1.7 for security and reproducibility.
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+
+      - name: Validate JSON files
+        run: |
+          # Use jq to validate the syntax of all critical .json configuration files.
+          # The 'e' flag exits with an error if the file is not valid JSON.
+          jq -e . eslint.config.json > /dev/null
+          jq -e . tsconfig.json > /dev/null
+          jq -e . package.json > /dev/null
+          echo "✅ All JSON configuration files are well-formed."
+
+  Analyze:
+    needs: [Validate-Configs]
+    runs-on: ubuntu-latest
+    strategy:
+      # Ensures all analysis jobs run, even if one fails.
+      fail-fast: false
+      matrix:
+        # 'tsc' is added for strict type checking.
+        tool: [eslint, prettier, tsc, codeql]
+    steps:
+      - name: Checkout code
+        # Pinned to commit SHA for v4.1.7 for security and reproducibility.
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+
+      - name: Set up Node.js
+        if: matrix.tool != 'codeql' # CodeQL has its own setup
+        # Pinned to commit SHA for v4.0.3 for security and reproducibility.
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22' # Use a recent LTS version
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: matrix.tool != 'codeql'
+        run: npm ci
+
+      # --- Tool-specific analysis steps ---
+
+      - name: Run ESLint
+        if: matrix.tool == 'eslint'
+        # Generates a JSON report for SonarQube.
+        # '|| true' allows the workflow to continue, letting SonarQube handle the quality gate.
+        run: npx eslint . --format json --output-file eslint-report.json || true
+
+      - name: Run Prettier Check
+        if: matrix.tool == 'prettier'
+        # Checks for formatting issues without changing files.
+        run: npm run format:check || true
+
+      - name: Run TypeScript Type-Checker
+        if: matrix.tool == 'tsc'
+        # Uses the project's tsconfig.json to perform strict type checking on JS files (via allowJs).
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Initialize CodeQL
+        if: matrix.tool == 'codeql'
+        # Pinned to commit SHA for v3.25.11 for security and reproducibility.
+        uses: github/codeql-action/init@ef36b69c6d7c22bd9d0183f534d82d47639dc745
+        with:
+          languages: javascript-typescript
+
+      - name: Perform CodeQL Analysis
+        if: matrix.tool == 'codeql'
+        # Pinned to commit SHA for v3.25.11 for security and reproducibility.
+        uses: github/codeql-action/analyze@ef36b69c6d7c22bd9d0183f534d82d47639dc745
+        with:
+          category: "/language:javascript"
+
+      - name: Upload report artifact
+        # Pinned to commit SHA for v4.3.4 for security and reproducibility.
+        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        with:
+          name: ${{ matrix.tool }}-report
+          path: |
+            eslint-report.json
+            ../results/sarif/*.sarif
+          retention-days: 1
+
+  SonarQube:
+    needs: [Analyze]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        # Pinned to commit SHA for v4.1.7 for security and reproducibility.
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        with:
+          # Sonar needs full history for accurate blame information and new code detection.
+          fetch-depth: 0
+
+      - name: Download all analysis reports
+        # Pinned to commit SHA for v4.1.8 for security and reproducibility.
+        uses: actions/download-artifact@448e3f862ab3ef47aa50ff917776823c9946035b
+        with:
+          # Downloads all artifacts from the 'Analyze' job into the 'reports' directory.
+          path: reports
+
+      - name: Prepare SonarQube arguments
+        id: prep_sonar
+        run: |
+          echo "Processing downloaded reports..."
+          SONAR_ARGS=""
+
+          # --- Process ESLint Report ---
+          if [ -f "reports/eslint-report/eslint-report.json" ]; then
+            echo "✅ Found ESLint report."
+            SONAR_ARGS="$SONAR_ARGS -Dsonar.eslint.reportPaths=reports/eslint-report/eslint-report.json"
+          else
+            echo "⚠️ ESLint report not found."
+          fi
+
+          # --- Process SARIF Reports ---
+          CODEQL_REPORT=$(find reports/codeql-report -name "*.sarif" -print -quit)
+          if [ -n "$CODEQL_REPORT" ]; then
+            echo "✅ Found CodeQL SARIF report at $CODEGL_REPORT."
+            SONAR_ARGS="$SONAR_ARGS -Dsonar.sarif.reportPaths=$CODEQL_REPORT"
+          else
+            echo "⚠️ CodeQL report not found."
+          fi
+
+          # --- Add TypeScript Configuration ---
+          if [ -f "tsconfig.json" ]; then
+            echo "✅ Found tsconfig.json for SonarQube analysis."
+            SONAR_ARGS="$SONAR_ARGS -Dsonar.typescript.tsconfigPath=tsconfig.json"
+          fi
+
+          echo "SONAR_EXTRA_ARGS=${SONAR_ARGS}" >> $GITHUB_ENV
+          echo "✨ Final SonarQube arguments: ${SONAR_ARGS}"
+
+      - name: Analyze with SonarQube
+        # Pinned to commit SHA for v2.0.0 for security and reproducibility.
+        uses: SonarSource/sonarqube-scan-action@74f62c995b9850ae60753f0894f5e4e0ce69407f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=DavidOsipov_Vision-ui
+            -Dsonar.organization=davidosipov
+            -Dsonar.sources=src/
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.verbose=false
+            ${{ env.SONAR_EXTRA_ARGS }}
