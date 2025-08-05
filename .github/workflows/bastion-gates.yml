@@ -170,7 +170,7 @@ jobs:
 
       - name: Analyze with SonarQube
         # Pinned to commit SHA for v2.0.0 for security and reproducibility.
-        uses: SonarSource/sonarqube-scan-action@74f62c995b9850ae60753f0894f5e4e0ce69407f
+        uses: SonarSource/sonarqube-scan-action@01850e2590cc09ed26831056406ae1525aa41ad5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
