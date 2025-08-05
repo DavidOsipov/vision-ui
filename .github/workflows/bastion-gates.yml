@@ -49,12 +49,15 @@ jobs:
 
       - name: Validate JSON files
         run: |
+          # Use node --check for JavaScript config files to verify syntax.
+          echo "Validating eslint.config.js syntax..."
+          node --check eslint.config.js
+          
           # Use jq to validate the syntax of all critical .json configuration files.
           # The 'e' flag exits with an error if the file is not valid JSON.
-          jq -e . eslint.config.json > /dev/null
           jq -e . tsconfig.json > /dev/null
           jq -e . package.json > /dev/null
-          echo "✅ All JSON configuration files are well-formed."
+          echo "✅ All configuration files are well-formed."
 
   Analyze:
     needs: [Validate-Configs]
@@ -159,7 +162,7 @@ jobs:
           # --- Process SARIF Reports ---
           CODEQL_REPORT=$(find reports/codeql-report -name "*.sarif" -print -quit)
           if [ -n "$CODEQL_REPORT" ]; then
-            echo "✅ Found CodeQL SARIF report at $CODEGL_REPORT."
+            echo "✅ Found CodeQL SARIF report at $CODEQL_REPORT."
             SONAR_ARGS="$SONAR_ARGS -Dsonar.sarif.reportPaths=$CODEQL_REPORT"
           else
             echo "⚠️ CodeQL report not found."
