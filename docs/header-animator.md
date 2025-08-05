@@ -1,11 +1,10 @@
 # Header Animator
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://spdx.org/licenses/MIT.html)
-[![Built with](https://img.shields.io/badge/Built%20with-Modern%20JS-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Security](https://img.shields.io/badge/Security-Hardened-brightgreen)](https://owasp.org/www-project-top-ten/)
+[![License](https://img-shields.io/badge/License-MIT-blue.svg)](https://spdx.org/licenses/MIT.html)
+[![Built with](https://img-shields.io/badge/Built%20with-Modern%20JS-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Security](https://img-shields.io/badge/Security-Hardened-brightgreen)](https://owasp.org/www-project-top-ten/)
 
-
-*   **SPDX-License-Identifier:** MIT  
+*   **SPDX-License-Identifier:** MIT
 *   **SPDX-FileCopyrightText:** © 2025 David Osipov <personal@david-osipov.vision>
 *   **Author Website:** [david-osipov.vision](https://david-osipov.vision)
 *   **Author ISNI:** 0000 0005 1802 960X
@@ -32,52 +31,62 @@ The animator is built on four foundational pillars:
 
 ---
 
-## Why Use This Animator? (A Deep Dive into its Quality)
+## Advanced Features & Design Philosophy
 
-This script's quality is evident in its architecture, security posture, and performance-oriented design. It makes the "right way" the "easy way."
+This script's quality is evident in its architecture and the deliberate engineering decisions made to ensure stability, security, and performance.
 
-### 1. Architectural Excellence
+### 1. Intelligent Feature Detection (Not Browser Sniffing)
 
-The script is a model of modern software design, promoting maintainability and stability.
+This script adheres to the modern best practice of **feature detection** over the outdated and unreliable method of browser sniffing. It never asks "What browser is this?" but instead asks "What can this browser *do*?". The `CapabilityDetector` class checks for the presence of specific, high-performance APIs and assigns a capability level to tailor the user experience.
 
-*   **Separation of Concerns:** The code is cleanly divided into four classes, each with a single responsibility:
-    *   `CapabilityDetector`: Determines what the browser can handle.
-    *   `ElementValidator`: A security-focused utility to safely query and validate DOM elements.
-    *   `EnhancedHeaderAnimator`: The core logic engine that orchestrates the animations.
-    *   `HeaderAnimationManager`: A singleton that controls the animator's lifecycle.
-*   **Immutable Configuration:** The `CONFIG` object is recursively frozen with `Object.freeze()`. This critical step ensures that configuration cannot be altered at runtime, preventing a whole class of potential bugs and security vulnerabilities.
-*   **Robust Lifecycle Management:** The `HeaderAnimationManager` provides `initialize()` and `destroy()` methods. Proper cleanup of event listeners, animations, and observers is essential for preventing memory leaks in SPAs (e.g., with frameworks like Astro, Next.js, or SvelteKit), and this script handles it perfectly.
+| Capability Level | Required APIs                                    | User Experience                                                                      |
+| :--------------- | :----------------------------------------------- | :----------------------------------------------------------------------------------- |
+| **Premium**      | `View Transitions` + `Web Animations`            | The smoothest scroll animations plus seamless, hardware-accelerated page transitions.  |
+| **Enhanced**     | `Web Animations` + `Composite`                   | Silky-smooth scroll animations with optimal performance via composite mode.            |
+| **Standard**     | `Web Animations`                                 | Smooth scroll animations that run off the main thread.                               |
+| **Fallback**     | None of the above                                | No JavaScript animations. The script applies a CSS class for a simple, clean fallback. |
 
-### 2. A Security-First Mindset
+This approach ensures the script is future-proof, reliable, and always delivers the best possible experience for each user's environment.
 
-Security is woven into the fabric of the animator, not bolted on as an afterthought.
+### 2. Uncompromising Performance
 
-*   **Selector Allowlisting:** The `ElementValidator` does not query arbitrary selectors. It validates them against a **strict allowlist**, mitigating the risk of unexpected behavior or security issues if the DOM is manipulated.
-    ```javascript
-    // A hardcoded allowlist prevents the script from interacting
-    // with unintended or potentially malicious elements.
-    const allowedSelectors = [
-      '#main-header',
-      '#navbar-container',
-      // ...
-    ];
-    if (!allowedSelectors.includes(selector)) {
-      throw new Error(`Selector not in allowlist: ${selector}`);
-    }
-    ```
-*   **DOM Pollution Prevention:** The script enforces a maximum number of elements it will interact with (`CONFIG.SECURITY.MAX_ELEMENTS`), preventing performance degradation or unexpected behavior from DOM injection attacks.
-*   **Error Resilience & Graceful Degradation:** The animator is wrapped in extensive `try...catch` blocks and includes a retry limit for errors. If something goes wrong, it will gracefully fall back to a CSS-only state or destroy itself rather than crashing the page.
+*   **True Jank-Free Animation with WAAPI:** The script exclusively uses the Web Animations API (`element.animate`). This is a critical architectural choice because WAAPI allows the browser to run animations primarily on the **compositor thread**, separate from the main thread where JavaScript execution occurs. The result is animations that remain silky-smooth even when the main thread is busy.
 
-### 3. Performance by Default
+*   **Efficient Scroll Detection with `IntersectionObserver`:** Instead of relying on the legacy `onscroll` event listener—a notorious source of performance issues—the animator uses a modern **`IntersectionObserver`**. A lightweight "sentinel" element is observed, and the browser efficiently notifies the script *only when the header's state needs to change*. This asynchronous approach consumes virtually zero resources while idle.
 
-The script is meticulously optimized for a smooth user experience.
+*   **Stateful, Controllable Animations:** Animations are created *once* during initialization and held in a paused state. To change direction, the script simply flips the `animation.playbackRate` between `1` and `-1`. This is vastly more performant than creating new animations or toggling CSS classes, as it avoids the overhead of object creation and style recalculations.
 
-*   **Modern API Usage:**
-    *   It uses the **Web Animations API** (`element.animate`), which allows browsers to run animations on the high-priority compositor thread, making them immune to main-thread JavaScript jank.
-    *   It uses **`IntersectionObserver`** to detect scroll position. This is vastly more performant than attaching a listener to the `scroll` event, which can fire hundreds of times per second and cause major performance bottlenecks.
-*   **Resource Conservation:**
-    *   Animations are automatically paused via the `visibilitychange` event when the tab is hidden, saving CPU cycles and battery life.
-    *   Event listeners are registered with `{ passive: true }` to optimize scrolling performance.
+*   **Explicit Compositor-Layer Promotion:** Keyframes include `transform: 'translateZ(0)'` to hint to the browser that animated elements should be promoted to their own **compositing layer** on the GPU, ensuring they are animated independently of the page's main paint lifecycle.
+
+### 3. A Security-First Mindset
+
+*   **Mitigation of Selector Injection via Allowlisting:** The `ElementValidator` validates all CSS selectors against a hardcoded allowlist. This crucial security measure prevents **Selector Injection**, where a vulnerability elsewhere on the page (like XSS) could otherwise trick the script into manipulating unintended elements.
+
+*   **Protection Against DOM Clobbering & Pollution:** By validating that queried nodes are true `Element` instances and limiting the number of tracked elements (`MAX_ELEMENTS`), the script is hardened against DOM Clobbering and performance degradation from DOM injection attacks.
+
+*   **Automatic Circuit Breaker:** The script counts runtime errors. If the number of errors exceeds a configured maximum, it automatically destroys itself. This **resilience pattern** prevents a persistent issue from causing an endless loop of errors that could crash the browser tab.
+
+### 4. Architectural Excellence
+
+*   **True Encapsulation with Private Fields (`#`):** The core animator class uses ECMAScript private fields (e.g., `#header`, `#animations`). This provides **guaranteed privacy**, preventing any external script from interfering with the animator's internal state, leading to a more robust and stable system.
+
+*   **Immutable, Centralized Configuration:** The `CONFIG` object is recursively frozen with `Object.freeze()`. This prevents accidental or malicious runtime modification of critical parameters, making the script more predictable and secure.
+
+*   **Robust Lifecycle with `AbortController`:** To prevent memory leaks in SPAs, all event listeners are managed via an `AbortController`. The `destroy()` method makes a single, foolproof call to `.abort()`, ensuring all listeners are instantly and reliably cleaned up.
+
+---
+
+### Execution Flow
+
+The animator follows a clear, robust lifecycle from initialization to cleanup:
+
+1.  **Initialize (`HeaderAnimationManager.initialize()`):** The manager is invoked, typically on `DOMContentLoaded` or a SPA navigation event.
+2.  **Detect Capabilities:** `CapabilityDetector` runs once and caches its results, assigning a capability level.
+3.  **Validate & Query:** `ElementValidator` safely finds the required DOM elements against its internal allowlist. If validation fails, the script gracefully aborts.
+4.  **Create Animations:** `EnhancedHeaderAnimator` creates all necessary `Animation` objects via WAAPI but leaves them **paused** at time `0`.
+5.  **Observe:** An `IntersectionObserver` is attached to a sentinel element.
+6.  **Trigger & Animate:** When the sentinel's intersection status changes, the observer callback fires. The script updates the `playbackRate` of the pre-built animations to `1` (to shrink) or `-1` (to expand) and calls `.play()`.
+7.  **Cleanup (`destroy()`):** On page unload or manual call, all animations are cancelled, the observer is disconnected, and all event listeners are removed to prevent memory leaks.
 
 ---
 
@@ -135,11 +144,13 @@ if (animatorInstance) {
 
 ## Graceful Degradation & Fallbacks
 
-The system is designed to provide a seamless experience for all users.
+The system is designed to provide a seamless experience for all users, automatically adapting to their environment.
 
-1.  **Reduced Motion:** If a user has `(prefers-reduced-motion: reduce)` enabled in their OS, the script will detect this, cancel all animations, and add a `.reduced-motion` class to the header. This allows you to provide a simple, accessible fade or no transition at all via CSS.
-2.  **Missing APIs:** If a critical API like `Web Animations` or `IntersectionObserver` is missing, the script will add a `.js-animation-fallback` class to the header, allowing you to define simpler CSS transitions as a fallback.
-3.  **Runtime Errors:** If the script fails during initialization for any reason, it will add a `.js-animation-failed` class to the header and clean up after itself, ensuring the page remains functional.
+| Condition                                            | Action Taken by Script                       | CSS Class Added             | Developer Action                                         |
+| :--------------------------------------------------- | :------------------------------------------- | :-------------------------- | :------------------------------------------------------- |
+| User has `prefers-reduced-motion`                    | All JS animations are disabled.              | `.reduced-motion`           | Use CSS to define a simple fade or no transition.        |
+| `Web Animations API` or `IntersectionObserver` is missing | Script gracefully aborts initialization.     | `.js-animation-fallback`    | Use CSS transitions to define a simpler animation.       |
+| A runtime error occurs during setup                  | Script aborts and cleans up all resources.   | `.js-animation-failed`      | Use CSS to ensure the header has a safe, static style.   |
 
 ## Environment Support
 
