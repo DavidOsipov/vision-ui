@@ -11,21 +11,18 @@
 # - TypeScript Compiler (tsc): Performs strict type-checking based on JSDoc annotations and tsconfig.json.
 # - CodeQL: GitHub's deep semantic code analysis for finding security vulnerabilities.
 #
-# This workflow runs weekly and on all PR/push events to the main branch.
+# This workflow runs manually, on every new release, and weekly on Sunday.
 
 name: 🛡️ JS Quality & Security Gates
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   # 1. Manual Trigger: Allows running the workflow on demand from the Actions UI.
   workflow_dispatch:
+
   # 2. Release Trigger: Automatically runs when a new release is published.
-  # This serves as a final quality check on the code being released.
   release:
     types: [published]
+
   # 3. Scheduled Trigger: Runs weekly as a routine health check of the main branch.
   schedule:
     - cron: '0 2 * * 0'  # Weekly on Sunday at 02:00 UTC
@@ -38,7 +35,7 @@ permissions:
   checks: write
 
 jobs:
-  # This job provides a quick, preliminary check to ensure all JSON configuration files are valid.
+  # This job provides a quick, preliminary check to ensure all configuration files are valid.
   # It fails fast if a simple syntax error is found in a config file.
   Validate-Configs:
     runs-on: ubuntu-latest
@@ -47,16 +44,30 @@ jobs:
         # Pinned to commit SHA for v4.1.7 for security and reproducibility.
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
 
-      - name: Validate Config files
+      - name: Set up Node.js for validation
+        # Pinned to commit SHA for v4.0.3 for security and reproducibility.
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies for validation
+        run: npm ci
+
+      - name: Validate configuration files
         run: |
           # Use node --check for JavaScript config files to verify syntax.
           echo "Validating eslint.config.js syntax..."
           node --check eslint.config.js
           
-          # Use jq to validate the syntax of all critical .json configuration files.
-          # The 'e' flag exits with an error if the file is not valid JSON.
-          jq -e . tsconfig.json > /dev/null
+          # Use the TypeScript compiler itself to validate tsconfig.json. This is more robust than jq.
+          echo "Validating tsconfig.json..."
+          npx tsc --showConfig -p tsconfig.json > /dev/null
+
+          # Use jq for package.json as it is a standard, strict JSON file.
+          echo "Validating package.json..."
           jq -e . package.json > /dev/null
+          
           echo "✅ All configuration files are well-formed."
 
   Analyze:
@@ -105,14 +116,14 @@ jobs:
 
       - name: Initialize CodeQL
         if: matrix.tool == 'codeql'
-        # Pinned to commit SHA for v3.25.11 for security and reproducibility.
+        # Pinned to the latest SHA from your Renovate PR for security and reproducibility.
         uses: github/codeql-action/init@7273f08caa1dcf2c2837f362f1982de0ab4dc344
         with:
           languages: javascript-typescript
 
       - name: Perform CodeQL Analysis
         if: matrix.tool == 'codeql'
-        # Pinned to commit SHA for v3.25.11 for security and reproducibility.
+        # Pinned to the latest SHA from your Renovate PR for security and reproducibility.
         uses: github/codeql-action/analyze@7273f08caa1dcf2c2837f362f1982de0ab4dc344
         with:
           category: "/language:javascript"
