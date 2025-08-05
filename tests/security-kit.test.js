@@ -17,7 +17,7 @@ import { webcrypto } from "node:crypto";
 const mockCrypto = webcrypto;
 
 // Import the module to be tested.
-import securityKitDefault, * as securityKit from "../src/security-kit.js";
+import * as securityKit from "../src/security-kit.js";
 
 const {
   CryptoUnavailableError,
@@ -55,6 +55,21 @@ function chiSquaredTest(observed, totalObservations) {
     chiSquaredStatistic += (observed[category] - expected) ** 2 / expected;
   }
   return chiSquaredStatistic < criticalValue;
+}
+
+// Helper function to create a test runner for async/sync functions.
+function createTestRunner(func, isAsync) {
+  return (arg) => {
+    if (isAsync) {
+      return func(arg);
+    } else {
+      try {
+        return Promise.resolve(func(arg));
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    }
+  };
 }
 
 // --- Test Suite ---
@@ -128,17 +143,7 @@ describe("security-kit", () => {
     ["generateSecureId", generateSecureId, true],
     ["generateSecureIdSync", generateSecureIdSync, false],
   ])("%s", (name, func, isAsync) => {
-    const run = (arg) => {
-      if (isAsync) {
-        return func(arg);
-      } else {
-        try {
-          return Promise.resolve(func(arg));
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-    };
+    const run = createTestRunner(func, isAsync);
 
     it("should generate an ID of the default length (12)", async () => {
       const id = await run();
@@ -171,11 +176,7 @@ describe("security-kit", () => {
         true,
       ];
       for (const input of invalidInputs) {
-        if (isAsync) {
-          await expect(run(input)).rejects.toThrow(InvalidParameterError);
-        } else {
-          await expect(run(input)).rejects.toThrow(InvalidParameterError);
-        }
+        await expect(run(input)).rejects.toThrow(InvalidParameterError);
       }
     });
   });
@@ -218,8 +219,14 @@ describe("security-kit", () => {
       const min = 0,
         max = 20;
       vi.mocked(mockCrypto.getRandomValues)
-        .mockImplementationOnce((arr) => ((arr[0] = 25), arr))
-        .mockImplementationOnce((arr) => ((arr[0] = 10), arr));
+        .mockImplementationOnce((arr) => {
+          arr[0] = 25;
+          return arr;
+        })
+        .mockImplementationOnce((arr) => {
+          arr[0] = 10;
+          return arr;
+        });
       const result = await getSecureRandomInt(min, max);
       expect(mockCrypto.getRandomValues).toHaveBeenCalledTimes(2);
       expect(result).toBe(10);
@@ -259,17 +266,7 @@ describe("security-kit", () => {
     ["getSecureRandomAsync", getSecureRandomAsync, true],
     ["getSecureRandom", getSecureRandom, false],
   ])("%s", (name, func, isAsync) => {
-    const run = () => {
-      if (isAsync) {
-        return func();
-      } else {
-        try {
-          return Promise.resolve(func());
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-    };
+    const run = () => createTestRunner(func, isAsync)();
 
     it("should use high precision (64-bit) path when available", async () => {
       await run();
@@ -295,17 +292,7 @@ describe("security-kit", () => {
     ["shouldExecuteThrottledAsync", shouldExecuteThrottledAsync, true],
     ["shouldExecuteThrottled", shouldExecuteThrottled, false],
   ])("%s", (name, func, isAsync) => {
-    const run = (arg) => {
-      if (isAsync) {
-        return func(arg);
-      } else {
-        try {
-          return Promise.resolve(func(arg));
-        } catch (error) {
-          return Promise.reject(error);
-        }
-      }
-    };
+    const run = (arg) => createTestRunner(func, isAsync)(arg);
 
     it("should return deterministically based on the underlying random number", async () => {
       // Mock the crypto API to return specific values

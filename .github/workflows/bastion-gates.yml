@@ -107,7 +107,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tool: [eslint, prettier, tsc, codeql]
+        tool: [eslint, prettier, tsc, codeql, snyk]
     steps:
       - name: Checkout code
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
@@ -149,6 +149,21 @@ jobs:
           category: "/language:javascript"
           # This line tells CodeQL where to save the SARIF file.
           output: codeql-results
+
+            # *** CHANGE 2: Add steps to set up and run Snyk ***
+      - name: Setup Snyk CLI
+        if: matrix.tool == 'snyk'
+        # Pinned to a specific commit for security and reproducibility
+        uses: snyk/actions/setup@cdb760004ba9ea4d525f2e043745dfe85bb9077e
+
+      - name: Run Snyk Open Source Scan
+        if: matrix.tool == 'snyk'
+        # Allow the workflow to continue even if vulnerabilities are found.
+        # SonarCloud will be the quality gate.
+        run: snyk test --sarif-file-output=snyk.sarif || true
+        env:
+          # Use the token from GitHub secrets
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       # --- MODIFICATION 2: Update the path for the artifact ---
       - name: Upload report artifact
