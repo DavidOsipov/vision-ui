@@ -1,8 +1,16 @@
 name: Sign Release Artifacts
 
-# This workflow runs automatically when a new release is published.
+# This workflow can be triggered in two ways:
+# 1. Manually from the Actions UI (`workflow_dispatch`).
+# 2. Automatically when a new release is published (`release`).
 on:
   workflow_dispatch:
+    # When run manually, it requires the user to input the release tag.
+    inputs:
+      release_tag:
+        description: "The tag of the release to sign (e.g., v1.0.0)"
+        required: true
+        type: string
   release:
     types: [published]
 
@@ -16,52 +24,51 @@ jobs:
   sign:
     runs-on: ubuntu-latest
     steps:
-      # 1. Check out the repository code at the specific release tag.
-      # Pinned to the commit SHA for v4.1.7
-      - name: Checkout repository
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      # 1. Determine the correct release tag to use.
+      # This step handles both manual and automatic triggers gracefully.
+      - name: Determine Release Tag
+        id: vars
+        run: |
+          # If triggered manually, use the tag from the user's input.
+          # If triggered by a release event, use the tag from the event context.
+          TAG=${{ github.event.inputs.release_tag || github.ref_name }}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      # 2. Install Cosign, the generic Sigstore signing tool.
+      # 2. Check out the repository code at the specific release tag determined above.
+      # Pinned to the commit SHA for v4.1.7
+      - name: Checkout repository at specified tag
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        with:
+          ref: ${{ steps.vars.outputs.tag }}
+
+      # 3. Install Cosign, the generic Sigstore signing tool.
       # Pinned to the commit SHA for v3.5.0
       - name: Install Cosign
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159
 
-      # 3. Set up a Node.js environment.
+      # 4. Set up a Node.js environment.
       # Pinned to the commit SHA for v4.0.3
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
+          node-version: '22.18.0'
 
-      # 4. Sign the key repository files using Cosign.
-      # This step iterates through a list of important files and signs each one.
-      - name: Sign release files with Sigstore
+      # 5. Automatically find and sign all relevant files.
+      # This step replaces the manual file list with an automated `find` command.
+      - name: Find and sign all .md, .js, and .d.ts files
+        id: sign_files
         run: |
-          # This list is the single source of truth for which files get signed.
-          # It now reflects the correct directory structure.
-          FILES_TO_SIGN="
-          # Root-level project files
-          *.md
-
-          # Source files located in the src/ directory
-          src/*.js
-          src/*.d.ts
-
-          # Documentation files located in the docs/ directory
-          docs/header-animator.md
-          docs/security-kit.md
-          "
-          for file in $FILES_TO_SIGN; do
-            if [ -f "$file" ]; then
-              echo "Signing $file..."
-              cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "$file"
-            else
-              echo "Warning: File $file not found. Skipping."
-            fi
+          echo "Finding all files with .md, .js, and .d.ts extensions..."
+          
+          # Use `find` to locate all relevant files, excluding the .git directory.
+          # The `while read` loop is a robust way to handle filenames, even those with spaces.
+          # -print0 and -d $'\0' are used to handle any possible special characters in filenames safely.
+          find . -type f \( -name "*.md" -o -name "*.js" -o -name "*.d.ts" \) -not -path "./.git/*" -print0 | while IFS= read -r -d $'\0' file; do
+            echo "Signing $file..."
+            cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "$file"
           done
 
-      # 5. Upload the generated signatures (.sig) and certificates (.pem) to the GitHub Release.
-      # This makes the signatures publicly available for verification.
+      # 6. Upload the generated signatures (.sig) and certificates (.pem) to the GitHub Release.
       - name: Upload signatures and certificates to release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,7 +78,8 @@ jobs:
           if [ -z "$ARTIFACTS" ]; then
             echo "No signature artifacts found to upload."
           else
-            echo "Uploading the following artifacts to release ${{ github.ref_name }}:"
+            # This now correctly uses the tag determined in the first step.
+            echo "Uploading the following artifacts to release ${{ steps.vars.outputs.tag }}:"
             echo "$ARTIFACTS"
-            gh release upload ${{ github.ref_name }} $ARTIFACTS --clobber
+            gh release upload ${{ steps.vars.outputs.tag }} $ARTIFACTS --clobber
           fi
