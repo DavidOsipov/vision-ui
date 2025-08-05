@@ -47,7 +47,7 @@ jobs:
         # Pinned to commit SHA for v4.1.7 for security and reproducibility.
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
 
-      - name: Validate JSON files
+      - name: Validate Config files
         run: |
           # Use node --check for JavaScript config files to verify syntax.
           echo "Validating eslint.config.js syntax..."
