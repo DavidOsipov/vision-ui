@@ -43,11 +43,11 @@ jobs:
     steps:
       - name: Checkout code
         # Pinned to commit SHA for v4.1.7 for security and reproducibility.
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
 
       - name: Set up Node.js for validation
         # Pinned to commit SHA for v4.0.3 for security and reproducibility.
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398
         with:
           node-version: "22"
           cache: "npm"
@@ -78,10 +78,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398
         with:
           node-version: "22"
           cache: "npm"
@@ -110,11 +110,11 @@ jobs:
         tool: [eslint, prettier, tsc, codeql, snyk]
     steps:
       - name: Checkout code
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
 
       - name: Set up Node.js
         if: matrix.tool != 'codeql'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398
         with:
           node-version: "22"
           cache: "npm"
@@ -137,14 +137,14 @@ jobs:
 
       - name: Initialize CodeQL
         if: matrix.tool == 'codeql'
-        uses: github/codeql-action/init@7273f08caa1dcf2c2837f362f1982de0ab4dc344
+        uses: github/codeql-action/init@bbfff2f20a2d2b1bb30040286e0de8e59432af64
         with:
           languages: javascript-typescript
 
       # --- MODIFICATION 1: Control the output directory ---
       - name: Perform CodeQL Analysis
         if: matrix.tool == 'codeql'
-        uses: github/codeql-action/analyze@7273f08caa1dcf2c2837f362f1982de0ab4dc344
+        uses: github/codeql-action/analyze@bbfff2f20a2d2b1bb30040286e0de8e59432af64
         with:
           category: "/language:javascript"
           # This line tells CodeQL where to save the SARIF file.
@@ -184,7 +184,7 @@ jobs:
     steps:
       - name: Checkout code
         # Pinned to commit SHA for v4.1.7 for security and reproducibility.
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
         with:
           # Sonar needs full history for accurate blame information and new code detection.
           fetch-depth: 0

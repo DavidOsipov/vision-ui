@@ -37,7 +37,7 @@ jobs:
       # 2. Check out the repository code at the specific release tag determined above.
       # Pinned to the commit SHA for v4.1.7
       - name: Checkout repository at specified tag
-        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
         with:
           ref: ${{ steps.vars.outputs.tag }}
 
@@ -49,7 +49,7 @@ jobs:
       # 4. Set up a Node.js environment.
       # Pinned to the commit SHA for v4.0.3
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398
         with:
           node-version: "22.18.0"
 
