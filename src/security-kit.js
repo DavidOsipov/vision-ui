@@ -58,14 +58,16 @@ async function ensureCrypto() {
   const crypto = globalThis.crypto;
   // @ts-expect-error - This is a valid feature detection pattern that TS incorrectly flags as always true.
   if (crypto?.getRandomValues) {
-    return (_cachedCrypto = crypto);
+    _cachedCrypto = crypto;
+    return _cachedCrypto;
   }
 
   try {
     // @ts-ignore - This is a conditional import for Node.js environments.
     const { webcrypto } = await import("node:crypto");
     if (webcrypto?.getRandomValues) {
-      return (_cachedCrypto = /** @type {Crypto} */ (webcrypto));
+      _cachedCrypto = /** @type {Crypto} */ (webcrypto);
+      return _cachedCrypto;
     }
   } catch {
     /* Ignore */
@@ -85,7 +87,8 @@ function ensureCryptoSync() {
   const crypto = globalThis.crypto;
   // @ts-expect-error - This is a valid feature detection pattern that TS incorrectly flags as always true.
   if (crypto?.getRandomValues) {
-    return (_cachedCrypto = crypto);
+    _cachedCrypto = crypto;
+    return _cachedCrypto;
   }
   throw new CryptoUnavailableError(
     "ensureCryptoSync failed: synchronous API unavailable.",
