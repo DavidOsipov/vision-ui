@@ -15,7 +15,7 @@ export interface AnimationCapabilities {
   intersectionObserver: boolean;
   reducedMotion: boolean;
   composite: boolean;
-  level: 'premium' | 'enhanced' | 'standard' | 'fallback';
+  level: "premium" | "enhanced" | "standard" | "fallback";
 }
 
 export interface PerformanceMetrics {
@@ -36,7 +36,10 @@ export declare class CapabilityDetector {
 export declare class ElementValidator {
   static validateSelector(selector: string): string;
   static validateElement(element: Element, expectedId?: string): Element;
-  static queryElementSafely(selector: string, context?: Document | Element): Element | null;
+  static queryElementSafely(
+    selector: string,
+    context?: Document | Element,
+  ): Element | null;
 }
 
 export declare class EnhancedHeaderAnimator {

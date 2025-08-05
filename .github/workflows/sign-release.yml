@@ -51,7 +51,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22.18.0'
+          node-version: "22.18.0"
 
       # 5. Automatically find and sign all relevant files.
       # This step replaces the manual file list with an automated `find` command.
@@ -59,7 +59,7 @@ jobs:
         id: sign_files
         run: |
           echo "Finding all files with .md, .js, and .d.ts extensions..."
-          
+
           # Use `find` to locate all relevant files, excluding the .git directory.
           # The `while read` loop is a robust way to handle filenames, even those with spaces.
           # -print0 and -d $'\0' are used to handle any possible special characters in filenames safely.

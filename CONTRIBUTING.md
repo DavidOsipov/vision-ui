@@ -8,14 +8,14 @@ This document provides a set of guidelines to help you contribute effectively.
 
 There are many ways to contribute to the project:
 
-*   **Reporting Bugs:** If you find a bug, please let us know.
-*   **Suggesting Enhancements:** Have an idea for a new feature or an improvement? We'd love to hear it.
-*   **Submitting Code:** You can contribute directly to the codebase by fixing bugs or adding new features.
+- **Reporting Bugs:** If you find a bug, please let us know.
+- **Suggesting Enhancements:** Have an idea for a new feature or an improvement? We'd love to hear it.
+- **Submitting Code:** You can contribute directly to the codebase by fixing bugs or adding new features.
 
 ## Reporting Bugs
 
--   **Security Vulnerabilities:** If you find a security vulnerability, please **DO NOT** open a public issue. Refer to our [Security Policy](SECURITY.md) for instructions on how to report it privately.
--   **Other Bugs:** For all other bugs, please [open a new issue](https://github.com/DavidOsipov/Vision-ui/issues/new) on GitHub. Be sure to include a clear title, a detailed description of the problem, and steps to reproduce it.
+- **Security Vulnerabilities:** If you find a security vulnerability, please **DO NOT** open a public issue. Refer to our [Security Policy](SECURITY.md) for instructions on how to report it privately.
+- **Other Bugs:** For all other bugs, please [open a new issue](https://github.com/DavidOsipov/Vision-ui/issues/new) on GitHub. Be sure to include a clear title, a detailed description of the problem, and steps to reproduce it.
 
 ## Suggesting Enhancements
 
@@ -28,11 +28,13 @@ Ready to contribute code? Here’s how to set up your environment and submit you
 1.  **Fork the Repository:** Start by forking the `vision-ui` repository to your own GitHub account.
 
 2.  **Clone Your Fork:** Clone your forked repository to your local machine.
+
     ```bash
     git clone https://github.com/YOUR_USERNAME/vision-ui.git
     ```
 
 3.  **Create a New Branch:** Create a new branch for your changes. Use a descriptive name (e.g., `fix-header-animation-bug` or `feature-add-accordion-component`).
+
     ```bash
     git checkout -b your-branch-name
     ```
@@ -40,11 +42,13 @@ Ready to contribute code? Here’s how to set up your environment and submit you
 4.  **Make Your Changes:** Write your code. Please try to follow the existing coding style and conventions. Ensure your code is well-commented, especially if the logic is complex.
 
 5.  **Commit Your Changes:** Commit your changes with a clear and descriptive commit message.
+
     ```bash
     git commit -m "feat: Add new accordion component"
     ```
 
 6.  **Push to Your Fork:** Push your branch to your forked repository on GitHub.
+
     ```bash
     git push origin your-branch-name
     ```

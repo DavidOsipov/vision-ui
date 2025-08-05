@@ -25,7 +25,7 @@ on:
 
   # 3. Scheduled Trigger: Runs weekly as a routine health check of the main branch.
   schedule:
-    - cron: '0 2 * * 0'  # Weekly on Sunday at 02:00 UTC
+    - cron: "0 2 * * 0" # Weekly on Sunday at 02:00 UTC
 
 permissions:
   pull-requests: read
@@ -48,9 +48,9 @@ jobs:
         # Pinned to commit SHA for v4.0.3 for security and reproducibility.
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22'
-          cache: 'npm'
-      
+          node-version: "22"
+          cache: "npm"
+
       - name: Install dependencies for validation
         run: npm ci
 
@@ -59,7 +59,7 @@ jobs:
           # Use node --check for JavaScript config files to verify syntax.
           echo "Validating eslint.config.js syntax..."
           node --check eslint.config.js
-          
+
           # Use the TypeScript compiler itself to validate tsconfig.json. This is more robust than jq.
           echo "Validating tsconfig.json..."
           npx tsc --showConfig -p tsconfig.json > /dev/null
@@ -67,7 +67,7 @@ jobs:
           # Use jq for package.json as it is a standard, strict JSON file.
           echo "Validating package.json..."
           jq -e . package.json > /dev/null
-          
+
           echo "✅ All configuration files are well-formed."
 
   Analyze:
@@ -89,8 +89,8 @@ jobs:
         # Pinned to commit SHA for v4.0.3 for security and reproducibility.
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22' # Use a recent LTS version
-          cache: 'npm'
+          node-version: "22" # Use a recent LTS version
+          cache: "npm"
 
       - name: Install dependencies
         if: matrix.tool != 'codeql'

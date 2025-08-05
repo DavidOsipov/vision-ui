@@ -20,21 +20,30 @@
 // --- Custom Error Classes for Robust Handling ---
 
 export class CryptoUnavailableError extends Error {
-  constructor(message = 'A compliant Web Crypto API is not available in this environment.') {
+  /**
+   * @param {string} [message]
+   */
+  constructor(
+    message = "A compliant Web Crypto API is not available in this environment.",
+  ) {
     super(`[secure-helpers] ${message}`);
-    this.name = 'CryptoUnavailableError';
+    this.name = "CryptoUnavailableError";
   }
 }
 
 export class InvalidParameterError extends RangeError {
+  /**
+   * @param {string} message
+   */
   constructor(message) {
     super(`[secure-helpers] ${message}`);
-    this.name = 'InvalidParameterError';
+    this.name = "InvalidParameterError";
   }
 }
 
 // --- Internal Helpers and State ---
 
+/** @type {Crypto | null} */
 let _cachedCrypto = null;
 
 /**
@@ -47,18 +56,22 @@ async function ensureCrypto() {
   if (_cachedCrypto) return _cachedCrypto;
 
   const crypto = globalThis.crypto;
+  // @ts-expect-error - This is a valid feature detection pattern that TS incorrectly flags as always true.
   if (crypto?.getRandomValues) {
     return (_cachedCrypto = crypto);
   }
 
   try {
-    const { webcrypto } = await import('node:crypto');
+    // @ts-ignore - This is a conditional import for Node.js environments.
+    const { webcrypto } = await import("node:crypto");
     if (webcrypto?.getRandomValues) {
-      return (_cachedCrypto = webcrypto);
+      return (_cachedCrypto = /** @type {Crypto} */ (webcrypto));
     }
-  } catch (e) { /* Ignore */ }
+  } catch {
+    /* Ignore */
+  }
 
-  throw new CryptoUnavailableError('ensureCrypto failed');
+  throw new CryptoUnavailableError("ensureCrypto failed");
 }
 
 /**
@@ -70,29 +83,49 @@ async function ensureCrypto() {
 function ensureCryptoSync() {
   if (_cachedCrypto) return _cachedCrypto;
   const crypto = globalThis.crypto;
+  // @ts-expect-error - This is a valid feature detection pattern that TS incorrectly flags as always true.
   if (crypto?.getRandomValues) {
     return (_cachedCrypto = crypto);
   }
-  throw new CryptoUnavailableError('ensureCryptoSync failed: synchronous API unavailable.');
+  throw new CryptoUnavailableError(
+    "ensureCryptoSync failed: synchronous API unavailable.",
+  );
 }
 
 /**
  * Centralized numeric parameter validation.
  * @private
+ * @param {number} value
+ * @param {string} paramName
+ * @param {number} min
+ * @param {number} max
  */
 function validateNumericParam(value, paramName, min, max) {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) {
-    throw new InvalidParameterError(`${paramName} must be an integer between ${min} and ${max}.`);
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < min ||
+    value > max
+  ) {
+    throw new InvalidParameterError(
+      `${paramName} must be an integer between ${min} and ${max}.`,
+    );
   }
 }
 
 /**
  * Centralized probability parameter validation.
  * @private
+ * @param {number} probability
  */
 function validateProbability(probability) {
-  if (typeof probability !== 'number' || !(probability >= 0 && probability <= 1)) {
-    throw new InvalidParameterError(`Probability must be a number between 0 and 1.`);
+  if (
+    typeof probability !== "number" ||
+    !(probability >= 0 && probability <= 1)
+  ) {
+    throw new InvalidParameterError(
+      `Probability must be a number between 0 and 1.`,
+    );
   }
 }
 
@@ -108,7 +141,7 @@ function validateProbability(probability) {
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export async function generateSecureId(length = 12) {
-  validateNumericParam(length, 'length', 1, 1024);
+  validateNumericParam(length, "length", 1, 1024);
   const crypto = await ensureCrypto();
   const byteLength = Math.ceil(length / 2);
   const buffer = new Uint8Array(byteLength);
@@ -116,9 +149,9 @@ export async function generateSecureId(length = 12) {
 
   const hexChars = [];
   for (const byte of buffer) {
-    hexChars.push(byte.toString(16).padStart(2, '0'));
+    hexChars.push(byte.toString(16).padStart(2, "0"));
   }
-  return hexChars.join('').slice(0, length);
+  return hexChars.join("").slice(0, length);
 }
 
 /**
@@ -130,7 +163,7 @@ export async function generateSecureId(length = 12) {
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export function generateSecureIdSync(length = 12) {
-  validateNumericParam(length, 'length', 1, 1024);
+  validateNumericParam(length, "length", 1, 1024);
   const crypto = ensureCryptoSync();
   const byteLength = Math.ceil(length / 2);
   const buffer = new Uint8Array(byteLength);
@@ -138,9 +171,9 @@ export function generateSecureIdSync(length = 12) {
 
   const hexChars = [];
   for (const byte of buffer) {
-    hexChars.push(byte.toString(16).padStart(2, '0'));
+    hexChars.push(byte.toString(16).padStart(2, "0"));
   }
-  return hexChars.join('').slice(0, length);
+  return hexChars.join("").slice(0, length);
 }
 
 /**
@@ -161,10 +194,12 @@ export async function generateSecureUUID() {
   crypto.getRandomValues(buffer);
 
   // Set version (4) and variant (10xx) bits according to RFC 4122
-  buffer[6] = (buffer[6] & 0x0f) | 0x40;
-  buffer[8] = (buffer[8] & 0x3f) | 0x80;
+  buffer[6] = ((buffer[6] ?? 0) & 0x0f) | 0x40;
+  buffer[8] = ((buffer[8] ?? 0) & 0x3f) | 0x80;
 
-  const hex = Array.from(buffer, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(buffer, (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
   return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}`;
 }
 
@@ -180,9 +215,20 @@ export async function generateSecureUUID() {
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export async function getSecureRandomInt(min, max) {
-  validateNumericParam(min, 'min', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-  validateNumericParam(max, 'max', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-  if (min > max) throw new InvalidParameterError('min must be less than or equal to max.');
+  validateNumericParam(
+    min,
+    "min",
+    Number.MIN_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER,
+  );
+  validateNumericParam(
+    max,
+    "max",
+    Number.MIN_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER,
+  );
+  if (min > max)
+    throw new InvalidParameterError("min must be less than or equal to max.");
 
   const crypto = await ensureCrypto();
   const range = max - min + 1;
@@ -194,10 +240,16 @@ export async function getSecureRandomInt(min, max) {
   do {
     const buffer = new Uint8Array(bytesNeeded);
     crypto.getRandomValues(buffer);
-    randomValue = 0;
-    for (let i = 0; i < bytesNeeded; i++) {
-      randomValue = (randomValue << 8) + (buffer.at(i) || 0);
-    }
+
+    // Use Array.from with proper bounds checking for security
+    randomValue = Array.from(buffer, (byte, index) => {
+      // Validate index is within expected bounds
+      if (index < 0 || index >= bytesNeeded) {
+        throw new Error("Buffer index out of bounds");
+      }
+      return byte;
+    }).reduce((acc, byte) => (acc << 8) + byte, 0);
+
     randomValue &= mask;
   } while (randomValue >= range);
 
@@ -214,19 +266,19 @@ export async function getSecureRandomInt(min, max) {
  */
 export async function getSecureRandomAsync() {
   const crypto = await ensureCrypto();
-  
+
   // Use high precision if available
-  if (typeof BigUint64Array !== 'undefined') {
+  if (typeof BigUint64Array !== "undefined") {
     const buffer = new BigUint64Array(1);
     crypto.getRandomValues(buffer);
     // Shift to get 52 bits, then divide by 2^52
-    return Number(buffer[0] >> 12n) / (2 ** 52);
+    return Number((buffer[0] ?? 0n) >> 12n) / 2 ** 52;
   }
-  
+
   // Fallback to 32-bit precision
   const buffer = new Uint32Array(1);
   crypto.getRandomValues(buffer);
-  return (buffer.at(0) || 0) / (0xFFFFFFFF + 1);
+  return (buffer[0] ?? 0) / (0xffffffff + 1);
 }
 
 /**
@@ -238,18 +290,18 @@ export async function getSecureRandomAsync() {
  */
 export function getSecureRandom() {
   const crypto = ensureCryptoSync();
-  
+
   // Use high precision if available
-  if (typeof BigUint64Array !== 'undefined') {
+  if (typeof BigUint64Array !== "undefined") {
     const buffer = new BigUint64Array(1);
     crypto.getRandomValues(buffer);
-    return Number(buffer[0] >> 12n) / (2 ** 52);
+    return Number((buffer[0] ?? 0n) >> 12n) / 2 ** 52;
   }
-  
+
   // Fallback to 32-bit precision
   const buffer = new Uint32Array(1);
   crypto.getRandomValues(buffer);
-  return (buffer.at(0) || 0) / (0xFFFFFFFF + 1);
+  return (buffer[0] ?? 0) / (0xffffffff + 1);
 }
 
 /**
@@ -283,25 +335,31 @@ export function shouldExecuteThrottled(probability) {
  * An object containing cached information about the current runtime environment.
  */
 export const environment = (() => {
+  /** @type {Map<string, boolean>} */
   const cache = new Map();
   return {
     get isDevelopment() {
-      if (cache.has('isDevelopment')) return cache.get('isDevelopment');
+      if (cache.has("isDevelopment")) {
+        return cache.get("isDevelopment") ?? false;
+      }
       let result = false;
       try {
-        const nodeEnv = globalThis.process?.env?.NODE_ENV;
+        const nodeEnv = /** @type {any} */ (globalThis).process?.env?.NODE_ENV;
         if (nodeEnv) {
-          result = nodeEnv === 'development';
+          result = nodeEnv === "development";
         } else if (globalThis.location) {
           const { hostname } = globalThis.location;
-          result = ['localhost', '127.0.0.1', ''].includes(hostname) || 
-                   hostname.endsWith('.local') ||
-                   hostname.startsWith('192.168.') || 
-                   hostname.startsWith('10.') ||
-                   hostname.startsWith('172.');
+          result =
+            ["localhost", "127.0.0.1", ""].includes(hostname) ||
+            hostname.endsWith(".local") ||
+            hostname.startsWith("192.168.") ||
+            hostname.startsWith("10.") ||
+            hostname.startsWith("172.");
         }
-      } catch (e) { /* Default to false */ }
-      cache.set('isDevelopment', result);
+      } catch {
+        /* Default to false */
+      }
+      cache.set("isDevelopment", result);
       return result;
     },
     get isProduction() {
@@ -336,23 +394,25 @@ export function secureDevLog(level, component, message, context = {}) {
     context,
   };
 
-  if (typeof document !== 'undefined') {
-    document.dispatchEvent(new CustomEvent('secure-dev-log', { detail: logEntry }));
+  if (typeof document !== "undefined") {
+    document.dispatchEvent(
+      new CustomEvent("secure-dev-log", { detail: logEntry }),
+    );
   } else {
     // Safe console method access using switch statement
     // Note: Template literals are acceptable in development-only logging context
     const logMessage = `[${logEntry.level}] (${component}) ${message}`;
     switch (level) {
-      case 'debug':
+      case "debug":
         console.debug(logMessage, context);
         break;
-      case 'info':
+      case "info":
         console.info(logMessage, context);
         break;
-      case 'warn':
+      case "warn":
         console.warn(logMessage, context);
         break;
-      case 'error':
+      case "error":
         console.error(logMessage, context);
         break;
       default:
@@ -364,9 +424,12 @@ export function secureDevLog(level, component, message, context = {}) {
 /**
  * Backward compatibility alias for secureDevLog
  * Note: Consider using secureDevLog for new code
+ * @param {'debug'|'info'|'warn'|'error'} type
+ * @param {string} component
+ * @param {object} [data={}]
  */
 export function secureDevNotify(type, component, data = {}) {
-  secureDevLog(type, component, 'Legacy notification', data);
+  secureDevLog(type, component, "Legacy notification", data);
 }
 
 /**

@@ -31,7 +31,7 @@ If you are unable to use GitHub Security Advisories, you can send a private, enc
 
 To ensure the confidentiality of your report, please encrypt your message using the PGP public key below.
 
--   **PGP Public Key:** [`D3FC4983E500AC3F7F136EB80E55C4A47454E82E`](https://openpgpkey.david-osipov.vision/.well-known/openpgpkey/david-osipov.vision/D3FC4983E500AC3F7F136EB80E55C4A47454E82E.asc)
+- **PGP Public Key:** [`D3FC4983E500AC3F7F136EB80E55C4A47454E82E`](https://openpgpkey.david-osipov.vision/.well-known/openpgpkey/david-osipov.vision/D3FC4983E500AC3F7F136EB80E55C4A47454E82E.asc)
 
 ---
 
@@ -39,12 +39,12 @@ To ensure the confidentiality of your report, please encrypt your message using 
 
 To help me validate and fix the issue as quickly as possible, please include the following in your report, regardless of the method you choose:
 
--   **A clear and descriptive title** for your report.
--   **The type of vulnerability** (e.g., Cross-Site Scripting, Insecure Randomness, Prototype Pollution).
--   **The affected script(s)** and version(s).
--   **A detailed description** of the vulnerability and its potential impact.
--   **A step-by-step proof-of-concept (PoC)** that demonstrates the vulnerability. This is the most important part.
--   **Any relevant configurations** or environmental details.
+- **A clear and descriptive title** for your report.
+- **The type of vulnerability** (e.g., Cross-Site Scripting, Insecure Randomness, Prototype Pollution).
+- **The affected script(s)** and version(s).
+- **A detailed description** of the vulnerability and its potential impact.
+- **A step-by-step proof-of-concept (PoC)** that demonstrates the vulnerability. This is the most important part.
+- **Any relevant configurations** or environmental details.
 
 ---
 
@@ -52,11 +52,11 @@ To help me validate and fix the issue as quickly as possible, please include the
 
 When you report a vulnerability in accordance with this policy, I commit to the following:
 
--   I will acknowledge receipt of your report within **48 business hours**.
--   I will provide an initial assessment of the vulnerability's validity and severity.
--   I will keep you updated on the progress of the remediation efforts.
--   I will notify you when a fix has been released.
--   I will publicly credit you for your discovery in the security advisory and release notes, unless you prefer to remain anonymous.
+- I will acknowledge receipt of your report within **48 business hours**.
+- I will provide an initial assessment of the vulnerability's validity and severity.
+- I will keep you updated on the progress of the remediation efforts.
+- I will notify you when a fix has been released.
+- I will publicly credit you for your discovery in the security advisory and release notes, unless you prefer to remain anonymous.
 
 ---
 
@@ -68,9 +68,9 @@ This policy applies to the JavaScript code within the `/src` directory of this r
 
 The following are considered out of scope for this security policy:
 
--   Vulnerabilities in third-party websites or services that use this code.
--   Vulnerabilities related to the underlying browser or Node.js runtime environment (e.g., a bug in the Web Crypto API itself). Please report these to the respective vendors.
--   Issues related to the security of GitHub's infrastructure.
--   Best practice recommendations that do not represent a direct, exploitable vulnerability.
+- Vulnerabilities in third-party websites or services that use this code.
+- Vulnerabilities related to the underlying browser or Node.js runtime environment (e.g., a bug in the Web Crypto API itself). Please report these to the respective vendors.
+- Issues related to the security of GitHub's infrastructure.
+- Best practice recommendations that do not represent a direct, exploitable vulnerability.
 
 Thank you for helping keep Vision UI and its users safe.

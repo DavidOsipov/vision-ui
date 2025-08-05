@@ -7,7 +7,6 @@
 
 <img src="https://github.com/user-attachments/assets/ece0a7ee-0306-4eea-b8df-32764a867f71" width="600" height="300" alt="Vision UI project banner: A glowing neural network on the left sends a focused energy wave to a set of clean user interface wireframes on the right, symbolizing AI-driven development.">
 
-
 Vision UI is a collection of enterprise-grade, dependency-free modules for modern web projects. Each component is engineered for maximum performance, security, and accessibility, designed to be dropped into any project (Astro, Eleventy, vanilla HTML) with minimal configuration.
 
 ## The Philosophy: AI-Orchestrated Engineering
@@ -28,24 +27,27 @@ The library is organized into two categories: UI Components and Core Utilities.
 
 Visual, interactive components for enhancing user experience.
 
-*   ### Header Animator
-    A performant, scroll-aware header that becomes compact as the user scrolls down. It uses `IntersectionObserver` for efficiency and includes a subtle hover effect.
+- ### Header Animator
 
-    ➡️ **[Read the full `header-animator` documentation](./docs/header-animator.md)**
+  A performant, scroll-aware header that becomes compact as the user scrolls down. It uses `IntersectionObserver` for efficiency and includes a subtle hover effect.
 
-*   ### Dialog Menu
-    A fully accessible, progressively enhanced mobile menu that uses the best animation engine available in the user's browser, from the modern View Transitions API down to a simple, robust WAAPI fallback.
+  ➡️ **[Read the full `header-animator` documentation](./docs/header-animator.md)**
 
-    ➡️ **[Read the full `dialog-menu` documentation](./docs/mobile-dialog-menu.md)**
+- ### Dialog Menu
+
+  A fully accessible, progressively enhanced mobile menu that uses the best animation engine available in the user's browser, from the modern View Transitions API down to a simple, robust WAAPI fallback.
+
+  ➡️ **[Read the full `dialog-menu` documentation](./docs/mobile-dialog-menu.md)**
 
 ### Core Utilities
 
 Foundational modules for building secure and robust applications.
 
-*   ### Security Kit
-    A zero-dependency module for robust cryptographic operations. It provides cryptographically secure random number/ID generation, bias-free integer functions, and safe development helpers, using the Web Crypto API exclusively.
+- ### Security Kit
 
-    ➡️ **[Read the full `security-kit` documentation](./docs/security-kit.md)**
+  A zero-dependency module for robust cryptographic operations. It provides cryptographically secure random number/ID generation, bias-free integer functions, and safe development helpers, using the Web Crypto API exclusively.
+
+  ➡️ **[Read the full `security-kit` documentation](./docs/security-kit.md)**
 
 ---
 
@@ -75,10 +77,10 @@ Each component has its own documentation with details on required HTML structure
 
 This project is actively maintained and growing. Key future goals include:
 
--   [ ] **TypeScript Conversion:** Migrating all scripts to TypeScript and providing official type definitions (`.d.ts`) for superior developer experience and type safety.
--   [ ] **NPM Package:** Publishing Vision UI as an NPM package for easier installation and version management.
--   [ ] **New Components:** Adding more high-quality components, such as accessible tabs and accordions.
--   [ ] **Unit & Integration Testing:** Implementing a comprehensive test suite to formalize the quality assurance process.
+- [ ] **TypeScript Conversion:** Migrating all scripts to TypeScript and providing official type definitions (`.d.ts`) for superior developer experience and type safety.
+- [ ] **NPM Package:** Publishing Vision UI as an NPM package for easier installation and version management.
+- [ ] **New Components:** Adding more high-quality components, such as accessible tabs and accordions.
+- [ ] **Unit & Integration Testing:** Implementing a comprehensive test suite to formalize the quality assurance process.
 
 ## Contributing
 
@@ -86,11 +88,10 @@ Contributions, bug reports, and feature requests are welcome! Please see the [CO
 
 ## Author and License
 
-*   **Author:** This project was architected and directed by **David Osipov**, an AI-Driven B2B Lead Product Manager. You can learn more about my work and philosophy at [david-osipov.vision](https://david-osipov.vision).
-*   **ISNI:** 0000 0005 1802 960X ([International Standard Name Identifier](https://isni.org/isni/000000051802960X))
-*   **ORCID:** [0009-0005-2713-9242](https://orcid.org/0009-0005-2713-9242)
-*   **VIAF:** [139173726847611590332](https://viaf.org/viaf/139173726847611590332/)
-*   **Wikidata:** [Q130604188](https://www.wikidata.org/wiki/Q130604188)
-*   **Contact:** <personal@david-osipov.vision>
-*   **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard, which is a machine-readable way to declare licenses.
-
+- **Author:** This project was architected and directed by **David Osipov**, an AI-Driven B2B Lead Product Manager. You can learn more about my work and philosophy at [david-osipov.vision](https://david-osipov.vision).
+- **ISNI:** 0000 0005 1802 960X ([International Standard Name Identifier](https://isni.org/isni/000000051802960X))
+- **ORCID:** [0009-0005-2713-9242](https://orcid.org/0009-0005-2713-9242)
+- **VIAF:** [139173726847611590332](https://viaf.org/viaf/139173726847611590332/)
+- **Wikidata:** [Q130604188](https://www.wikidata.org/wiki/Q130604188)
+- **Contact:** <personal@david-osipov.vision>
+- **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard, which is a machine-readable way to declare licenses.
