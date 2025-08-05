@@ -1,13 +1,13 @@
 // eslint.config.js
 import globals from "globals";
 import js from "@eslint/js";
-import tseslint from "@typescript-eslint/eslint-plugin";
-import tsparser from "@typescript-eslint/parser";
+import tseslint from "typescript-eslint"; // Correct way to import the full plugin object
 import eslintPluginSecurity from "eslint-plugin-security";
 import eslintPluginNoUnsanitized from "eslint-plugin-no-unsanitized";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+import eslintConfigPrettier from "eslint-config-prettier"; // Needed to disable conflicting rules
 
-export default [
+export default tseslint.config(
   // Global ignores
   {
     ignores: ["dist/**/*", "node_modules/**/*", "**/*.min.js"],
@@ -20,47 +20,48 @@ export default [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      parser: tsparser,
+      parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
       },
       globals: {
         ...globals.browser,
+        ...globals.node, // Add node globals for things like `process`
         IntersectionObserver: "readonly",
         performance: "readonly",
       },
     },
 
     plugins: {
-      "@typescript-eslint": tseslint,
+      "@typescript-eslint": tseslint.plugin,
       security: eslintPluginSecurity,
       "no-unsanitized": eslintPluginNoUnsanitized,
       prettier: eslintPluginPrettier,
     },
 
     rules: {
-      // Base rules
+      // Base recommended rules
       ...js.configs.recommended.rules,
+      // Recommended TypeScript rules
+      ...tseslint.configs.recommended.rules,
+      // Recommended security rules
+      ...eslintPluginSecurity.configs.recommended.rules,
 
-      // --- Prettier Integration ---
+      // --- Prettier Integration (must be last) ---
+      ...eslintConfigPrettier.rules,
       "prettier/prettier": "error",
 
-      // --- Stricter Core Rules ---
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { args: "none" }],
+      // --- Stricter Core & TS Rules ---
+      "no-unused-vars": "off", // Disable base rule, use TS version
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { args: "none", ignoreRestSiblings: true },
+      ],
       "no-console": ["warn", { allow: ["warn", "error", "info", "debug"] }],
       eqeqeq: ["error", "always"],
-
-      // --- Security Rule Hardening ---
-      "security/detect-object-injection": "error",
-      "security/detect-non-literal-fs-filename": "error",
-      "no-unsanitized/method": "error",
-      "no-unsanitized/property": "error",
-
-      // --- TypeScript Specific Rules ---
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/consistent-type-imports": "off", // Turn off for JS files
+      "@typescript-eslint/consistent-type-imports": "error",
     },
   },
 
@@ -69,16 +70,15 @@ export default [
     files: ["**/*.test.js", "**/*.spec.js", "**/tests/**/*.js"],
     languageOptions: {
       globals: {
-        ...globals.browser,
-        ...globals.node,
         ...globals.jest,
+        ...globals.vitest, // Use vitest globals
       },
     },
     rules: {
       // Relax some rules for test files
-      "security/detect-object-injection": "off", // Mock objects often trigger this
-      "@typescript-eslint/no-unused-vars": "off", // Test variables are often intentionally unused
+      "security/detect-object-injection": "off",
+      "@typescript-eslint/no-unused-vars": "off",
       "no-unused-vars": "off",
     },
   },
-];
+);

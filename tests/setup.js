@@ -1,17 +1,21 @@
+// tests/setup.js
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 David Osipov <personal@david-osipov.vision>
 
 /**
- * Vitest setup file for the security-kit module tests.
- * Handles crypto API mocking in a way that works with Node.js environment.
+ * Vitest global setup file for the security-kit module tests.
+ * This file is executed once before the test suite runs.
+ * It handles the global mocking of the Web Crypto API.
  */
 
 import { vi } from "vitest";
 
-// Mock the crypto module at the module level
+// This is the single, consistent mock object used across all tests.
 const mockCrypto = {
   getRandomValues: vi.fn((array) => {
+    // Fill the array with predictable, non-zero values for testing.
     for (let i = 0; i < array.length; i++) {
+      // This is safe in a test context where the array is always a TypedArray.
       array[i] = (i + 1) * 10;
     }
     return array;
@@ -19,21 +23,16 @@ const mockCrypto = {
   randomUUID: vi.fn(() => "mock-uuid-v4-from-crypto-api"),
 };
 
-// Store originals
-const originalCrypto = globalThis.crypto;
-const originalWebcrypto = globalThis.webcrypto;
+// Mock the 'node:crypto' module. This must be at the top level.
+// When any test file imports from 'node:crypto', it will get this mock.
+vi.mock("node:crypto", () => ({
+  webcrypto: mockCrypto,
+}));
 
-// Use Object.defineProperty to override the read-only crypto property
+// Use Object.defineProperty to override the read-only globalThis.crypto property.
+// This ensures that code checking for the global crypto object finds our mock.
 Object.defineProperty(globalThis, "crypto", {
   value: mockCrypto,
   writable: true,
   configurable: true,
 });
-
-// Mock the node:crypto module
-vi.mock("node:crypto", () => ({
-  webcrypto: mockCrypto,
-}));
-
-// Export for use in tests
-export { mockCrypto, originalCrypto, originalWebcrypto };
