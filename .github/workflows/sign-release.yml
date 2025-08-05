@@ -1,0 +1,76 @@
+name: Sign Release Artifacts
+
+# This workflow runs automatically when a new release is published.
+on:
+  release:
+    types: [published]
+
+# These permissions are required for Sigstore to authenticate with GitHub's OIDC provider
+# and to upload the generated signature files back to the release.
+permissions:
+  contents: write # to write assets to the release
+  id-token: write # to sign with Sigstore
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the repository code at the specific release tag.
+      # Pinned to the commit SHA for v4.1.7
+      - name: Checkout repository
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+
+      # 2. Install Cosign, the generic Sigstore signing tool.
+      # Pinned to the commit SHA for v3.5.0
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@961676426352a77711b6594c21a4a921a2b05247
+
+      # 3. Set up a Node.js environment.
+      # Pinned to the commit SHA for v4.0.3
+      - name: Set up Node.js
+        uses: actions/setup-node@a4447c3a2d31499e4b5a5b488de18d287a506312
+        with:
+          node-version: '20'
+
+      # 4. Sign the key repository files using Cosign.
+      # This step iterates through a list of important files and signs each one.
+      - name: Sign release files with Sigstore
+        run: |
+          # This list is the single source of truth for which files get signed.
+          # It now reflects the correct directory structure.
+          FILES_TO_SIGN="
+          # Root-level project files
+          *.md
+
+          # Source files located in the src/ directory
+          src/*.js
+          src/*.d.ts
+
+          # Documentation files located in the docs/ directory
+          docs/header-animator.md
+          docs/security-kit.md
+          "
+          for file in $FILES_TO_SIGN; do
+            if [ -f "$file" ]; then
+              echo "Signing $file..."
+              cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "$file"
+            else
+              echo "Warning: File $file not found. Skipping."
+            fi
+          done
+
+      # 5. Upload the generated signatures (.sig) and certificates (.pem) to the GitHub Release.
+      # This makes the signatures publicly available for verification.
+      - name: Upload signatures and certificates to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Find all signature and certificate files generated in the previous step.
+          ARTIFACTS=$(find . -type f \( -name "*.sig" -o -name "*.pem" \))
+          if [ -z "$ARTIFACTS" ]; then
+            echo "No signature artifacts found to upload."
+          else
+            echo "Uploading the following artifacts to release ${{ github.ref_name }}:"
+            echo "$ARTIFACTS"
+            gh release upload ${{ github.ref_name }} $ARTIFACTS --clobber
+          fi
