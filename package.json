@@ -1,0 +1,28 @@
+{
+  "name": "vision-ui",
+  "version": "1.0.0",
+  "description": "A collection of enterprise-grade, dependency-free modules for modern web projects.",
+  "author": "David Osipov <personal@david-osipov.vision>",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --ext .js,.mjs,.ts,.d.ts",
+    "lint:fix": "eslint . --ext .js,.mjs,.ts,.d.ts --fix",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "quality": "npm run format:check && npm run lint && npm run typecheck"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "eslint": "^9.4.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-no-unsanitized": "^4.0.2",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-security": "^3.0.0",
+    "globals": "^15.4.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.4.5"
+  }
+}
