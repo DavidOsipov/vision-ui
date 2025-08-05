@@ -10,11 +10,10 @@
  * confidence in the library's correctness, robustness, and security posture.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { webcrypto } from "node:crypto"; // This now imports our mock from setup.js
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { webcrypto } from "node:crypto";
 
-// The mockCrypto object is the same one defined in our setup file.
-// We import it here to reference it in our tests (e.g., for spies).
+// The mocked crypto object from our global setup file.
 const mockCrypto = webcrypto;
 
 // Import the module to be tested.
@@ -61,8 +60,8 @@ function chiSquaredTest(observed, totalObservations) {
 // --- Test Suite ---
 
 describe("security-kit", () => {
-  // `beforeEach` is now much cleaner. We only clear mock history.
-  // The mock implementation itself is preserved from the setup file.
+  // The mock implementation is preserved from the setup file.
+  // We only need to clear call history before each test.
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -93,26 +92,23 @@ describe("security-kit", () => {
       expect(mockCrypto.getRandomValues).toHaveBeenCalledTimes(1);
     });
 
-    // REFACTORED: This test now uses `vi.isolateModules` to safely test the fallback logic
-    // without causing memory leaks.
     it("should throw CryptoUnavailableError when no API is found", async () => {
-      await vi.isolateModules(async () => {
-        // Inside this block, we can safely manipulate the environment for one import.
-        Object.defineProperty(globalThis, "crypto", {
-          value: undefined,
-          configurable: true,
-        });
-        vi.doMock("node:crypto", () => ({ webcrypto: undefined }));
-
-        // This import gets a fresh, isolated version of the module.
-        const freshKit = await import("../src/security-kit.js");
-        await expect(freshKit.generateSecureId()).rejects.toThrow(
-          CryptoUnavailableError,
-        );
-
-        // Restore the mock for other tests.
-        vi.doUnmock("node:crypto");
+      // Use `vi.resetModules` and dynamic import to test module initialization logic.
+      vi.resetModules();
+      Object.defineProperty(globalThis, "crypto", {
+        value: undefined,
+        configurable: true,
       });
+      vi.doMock("node:crypto", () => ({ webcrypto: undefined }));
+
+      const freshKit = await import("../src/security-kit.js");
+      await expect(freshKit.generateSecureId()).rejects.toThrow(
+        CryptoUnavailableError,
+      );
+
+      // Restore for other tests
+      vi.doUnmock("node:crypto");
+      vi.resetModules();
     });
 
     it("should propagate underlying errors from a faulty crypto.getRandomValues", async () => {
@@ -213,8 +209,11 @@ describe("security-kit", () => {
     });
 
     it("should produce a uniform distribution (passes Chi-squared test)", async () => {
-      // Temporarily use the real webcrypto for statistical analysis
-      const realCrypto = (await import("node:crypto")).webcrypto;
+      // Use `vi.importActual` to get the real crypto implementation, bypassing the global mock.
+      const { webcrypto: realCrypto } = await vi.importActual("node:crypto");
+      if (!realCrypto)
+        throw new Error("Could not load real crypto for statistical test");
+
       Object.defineProperty(globalThis, "crypto", {
         value: realCrypto,
         configurable: true,
@@ -229,7 +228,7 @@ describe("security-kit", () => {
       }
       expect(chiSquaredTest(counts, iterations)).toBe(true);
 
-      // Restore the mock
+      // Restore the mock for other tests
       Object.defineProperty(globalThis, "crypto", {
         value: mockCrypto,
         configurable: true,
@@ -278,52 +277,56 @@ describe("security-kit", () => {
     });
   });
 
-  describe("Environment Detection", () => {
-    // REFACTORED: Use vi.isolateModules for clean, leak-free environment testing.
+  // Group tests that depend on `process.env` to manage state cleanly.
+  describe("Environment-dependent logic", () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    // Restore the original environment and reset modules after each test in this suite.
+    afterEach(() => {
+      process.env.NODE_ENV = originalNodeEnv;
+      vi.resetModules();
+    });
+
     it("should correctly identify development via NODE_ENV", async () => {
-      await vi.isolateModules(async () => {
-        process.env.NODE_ENV = "development";
-        const { environment } = await import("../src/security-kit.js");
-        expect(environment.isDevelopment).toBe(true);
-        delete process.env.NODE_ENV;
-      });
+      process.env.NODE_ENV = "development";
+      // The module cache must be reset *before* the dynamic import.
+      vi.resetModules();
+      const { environment } = await import("../src/security-kit.js");
+      expect(environment.isDevelopment).toBe(true);
     });
 
     it("should correctly identify production via NODE_ENV", async () => {
-      await vi.isolateModules(async () => {
-        process.env.NODE_ENV = "production";
-        const { environment } = await import("../src/security-kit.js");
-        expect(environment.isProduction).toBe(true);
-        delete process.env.NODE_ENV;
-      });
+      process.env.NODE_ENV = "production";
+      vi.resetModules();
+      const { environment } = await import("../src/security-kit.js");
+      expect(environment.isProduction).toBe(true);
+    });
+
+    it("should not be vulnerable to prototype pollution in dev logs", async () => {
+      process.env.NODE_ENV = "development"; // Ensure logging is on
+      vi.resetModules(); // Get a fresh module that reads the new env
+      const { secureDevLog } = await import("../src/security-kit.js");
+
+      // Temporarily modify global state for this test
+      const originalDocument = globalThis.document;
+      globalThis.document = undefined; // Force console logging path
+
+      const maliciousPayload = JSON.parse('{"__proto__": {"polluted": true}}');
+      secureDevLog("info", "test", "message", maliciousPayload);
+      expect({}.polluted).toBeUndefined();
+
+      // Clean up global state
+      globalThis.document = originalDocument;
     });
   });
 
-  describe("Development Logging and Security", () => {
-    it("should not be vulnerable to prototype pollution", async () => {
-      // This test requires an isolated module to ensure the environment is correct
-      await vi.isolateModules(async () => {
-        process.env.NODE_ENV = "development"; // Ensure logging is on
-        const { secureDevLog } = await import("../src/security-kit.js");
-        globalThis.document = undefined; // Force console logging path
-        const maliciousPayload = JSON.parse(
-          '{"__proto__": {"polluted": true}}',
-        );
-        secureDevLog("info", "test", "message", maliciousPayload);
-        expect({}.polluted).toBeUndefined();
-        delete process.env.NODE_ENV;
-      });
-    });
-  });
-
-  // This entire suite can be removed or simplified as it duplicates functionality
-  // or tests implementation details that are now more robustly handled.
-  // The memory leak test is no longer necessary as the primary leak source is fixed.
-  // The concurrency test is good to keep.
   describe("Advanced Security and Resource Testing", () => {
     it("should handle concurrent access without race conditions", async () => {
-      // Use real crypto for this to test genuine concurrency
-      const realCrypto = (await import("node:crypto")).webcrypto;
+      // Use `vi.importActual` to get the real crypto implementation for a genuine concurrency test.
+      const { webcrypto: realCrypto } = await vi.importActual("node:crypto");
+      if (!realCrypto)
+        throw new Error("Could not load real crypto for concurrency test");
+
       Object.defineProperty(globalThis, "crypto", {
         value: realCrypto,
         configurable: true,
@@ -336,6 +339,7 @@ describe("security-kit", () => {
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(100);
 
+      // Restore the mock for other tests
       Object.defineProperty(globalThis, "crypto", {
         value: mockCrypto,
         configurable: true,
