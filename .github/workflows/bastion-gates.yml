@@ -97,14 +97,14 @@ jobs:
       - name: Initialize CodeQL
         if: matrix.tool == 'codeql'
         # Pinned to commit SHA for v3.25.11 for security and reproducibility.
-        uses: github/codeql-action/init@ef36b69c6d7c22bd9d0183f534d82d47639dc745
+        uses: github/codeql-action/init@7273f08caa1dcf2c2837f362f1982de0ab4dc344
         with:
           languages: javascript-typescript
 
       - name: Perform CodeQL Analysis
         if: matrix.tool == 'codeql'
         # Pinned to commit SHA for v3.25.11 for security and reproducibility.
-        uses: github/codeql-action/analyze@ef36b69c6d7c22bd9d0183f534d82d47639dc745
+        uses: github/codeql-action/analyze@7273f08caa1dcf2c2837f362f1982de0ab4dc344
         with:
           category: "/language:javascript"
 
