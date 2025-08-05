@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Security: Hardened](https://img.shields.io/badge/Security-Hardened-brightgreen)](./docs/03-security-kit.md)
-[![DOI](https://zenodo.org/badge/1032156503.svg)](https://doi.org/10.5281/zenodo.16741212)
+
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=bugs)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
@@ -11,6 +11,8 @@
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DavidOsipov_Vision-ui&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=DavidOsipov_Vision-ui)
+
+[![DOI](https://zenodo.org/badge/1032156503.svg)](https://doi.org/10.5281/zenodo.16741212)
 
 <img src="https://github.com/user-attachments/assets/ece0a7ee-0306-4eea-b8df-32764a867f71" width="600" height="300" alt="Vision UI project banner: A glowing neural network on the left sends a focused energy wave to a set of clean user interface wireframes on the right, symbolizing AI-driven development.">
 
