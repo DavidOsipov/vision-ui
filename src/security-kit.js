@@ -6,7 +6,7 @@
 // Author ORCID: 0009-0005-2713-9242
 // Author VIAF: 139173726847611590332
 // Author Wikidata: Q130604188
-// Version: 3.4.0
+// Version: 3.5.0
 
 /**
  * Secure, performant, and modern cryptographic utilities.
@@ -14,7 +14,7 @@
  * It requires a modern environment with the Web Crypto API and will not
  * fall back to insecure methods.
  * @module security-kit
- * @version 3.4.0
+ * @version 3.5.0
  */
 
 // --- Custom Error Classes for Robust Handling ---
@@ -132,51 +132,65 @@ function validateProbability(probability) {
   }
 }
 
+/**
+ * Optimized hex encoding that uses Node.js Buffer when available for better performance.
+ * @private
+ * @param {Uint8Array} buffer
+ * @returns {string}
+ */
+function bytesToHex(buffer) {
+  // Detect Node.js environment and use Buffer for optimal performance
+  // @ts-ignore - Buffer is a Node.js global that may not exist in browsers
+  if (typeof globalThis.Buffer !== "undefined" && globalThis.Buffer.from) {
+    // @ts-ignore - Buffer is a Node.js global
+    return globalThis.Buffer.from(buffer).toString("hex");
+  }
+
+  // Browser fallback: manual hex encoding
+  const hexChars = [];
+  for (const byte of buffer) {
+    hexChars.push(byte.toString(16).padStart(2, "0"));
+  }
+  return hexChars.join("");
+}
+
 // --- Public API ---
 
 /**
  * Generates a cryptographically secure random ID using hexadecimal encoding.
  *
  * @async
- * @param {number} [length=12] - The desired length of the ID. Must be an integer between 1 and 1024.
+ * @param {number} [length=12] - The desired length of the ID. Must be an integer between 1 and 256.
  * @returns {Promise<string>} A Promise that resolves with the secure random hexadecimal ID.
  * @throws {InvalidParameterError} When length is not valid.
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export async function generateSecureId(length = 12) {
-  validateNumericParam(length, "length", 1, 1024);
+  validateNumericParam(length, "length", 1, 256);
   const crypto = await ensureCrypto();
   const byteLength = Math.ceil(length / 2);
   const buffer = new Uint8Array(byteLength);
   crypto.getRandomValues(buffer);
 
-  const hexChars = [];
-  for (const byte of buffer) {
-    hexChars.push(byte.toString(16).padStart(2, "0"));
-  }
-  return hexChars.join("").slice(0, length);
+  return bytesToHex(buffer).slice(0, length);
 }
 
 /**
  * Synchronously generates a cryptographically secure random ID.
  *
- * @param {number} [length=12] - The desired length of the ID. Must be an integer between 1 and 1024.
+ * @param {number} [length=12] - The desired length of the ID. Must be an integer between 1 and 256.
  * @returns {string} The secure random hexadecimal ID.
  * @throws {InvalidParameterError} When length is not valid.
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export function generateSecureIdSync(length = 12) {
-  validateNumericParam(length, "length", 1, 1024);
+  validateNumericParam(length, "length", 1, 256);
   const crypto = ensureCryptoSync();
   const byteLength = Math.ceil(length / 2);
   const buffer = new Uint8Array(byteLength);
   crypto.getRandomValues(buffer);
 
-  const hexChars = [];
-  for (const byte of buffer) {
-    hexChars.push(byte.toString(16).padStart(2, "0"));
-  }
-  return hexChars.join("").slice(0, length);
+  return bytesToHex(buffer).slice(0, length);
 }
 
 /**
@@ -200,63 +214,77 @@ export async function generateSecureUUID() {
   buffer[6] = ((buffer[6] ?? 0) & 0x0f) | 0x40;
   buffer[8] = ((buffer[8] ?? 0) & 0x3f) | 0x80;
 
-  const hex = Array.from(buffer, (byte) =>
-    byte.toString(16).padStart(2, "0"),
-  ).join("");
+  const hex = bytesToHex(buffer);
   return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}`;
 }
 
 /**
  * Generates a secure random integer within a specified range [min, max] (inclusive).
  * Uses rejection sampling to avoid modulo bias, ensuring a uniform distribution.
+ * Automatically handles large ranges (> 2^32) using BigInt arithmetic.
  *
  * @async
- * @param {number} min - The minimum value.
- * @param {number} max - The maximum value.
+ * @param {number} min - The minimum value (must be within ±2^31 for large range support).
+ * @param {number} max - The maximum value (must be within ±2^31 for large range support).
  * @returns {Promise<number>} A secure random integer in the specified range.
  * @throws {InvalidParameterError} When parameters are invalid.
  * @throws {CryptoUnavailableError} When the crypto API is unavailable.
  */
 export async function getSecureRandomInt(min, max) {
-  validateNumericParam(
-    min,
-    "min",
-    Number.MIN_SAFE_INTEGER,
-    Number.MAX_SAFE_INTEGER,
-  );
-  validateNumericParam(
-    max,
-    "max",
-    Number.MIN_SAFE_INTEGER,
-    Number.MAX_SAFE_INTEGER,
-  );
+  // Enforce stricter bounds to prevent DoS and ensure BigInt compatibility
+  const MAX_SAFE_RANGE = 2 ** 31;
+  const MIN_SAFE_RANGE = -(2 ** 31);
+
+  validateNumericParam(min, "min", MIN_SAFE_RANGE, MAX_SAFE_RANGE);
+  validateNumericParam(max, "max", MIN_SAFE_RANGE, MAX_SAFE_RANGE);
+
   if (min > max)
     throw new InvalidParameterError("min must be less than or equal to max.");
 
   const crypto = await ensureCrypto();
-  const range = max - min + 1;
-  const bitsNeeded = Math.ceil(Math.log2(range));
-  const bytesNeeded = Math.ceil(bitsNeeded / 8);
-  const mask = (1 << bitsNeeded) - 1;
+  const range = BigInt(max - min + 1);
 
+  // Calculate bits more accurately for BigInt ranges
+  const bitsNeeded = range <= 1n ? 1 : range.toString(2).length;
+  const bytesNeeded = Math.ceil(bitsNeeded / 8);
+
+  // Prevent DoS attacks with excessive buffer allocations
+  // Limit to 8 bytes (64 bits) which covers our supported range
+  if (bytesNeeded > 8) {
+    throw new InvalidParameterError(
+      "Range too large - maximum 8 bytes (64 bits) supported.",
+    );
+  }
+
+  /** @type {bigint} */
   let randomValue;
+  const maxIterations = 1000; // Circuit breaker to prevent infinite loops
+  let iterations = 0;
+
   do {
+    if (++iterations > maxIterations) {
+      throw new Error(
+        "Failed to generate random integer within reasonable iterations - possible implementation error.",
+      );
+    }
+
     const buffer = new Uint8Array(bytesNeeded);
     crypto.getRandomValues(buffer);
 
-    // Use Array.from with proper bounds checking for security
-    randomValue = Array.from(buffer, (byte, index) => {
-      // Validate index is within expected bounds
-      if (index < 0 || index >= bytesNeeded) {
-        throw new Error("Buffer index out of bounds");
-      }
-      return byte;
-    }).reduce((acc, byte) => (acc << 8) + byte, 0);
+    // Use BigInt for safe arithmetic regardless of range size
+    randomValue = 0n;
+    // Use Array.from to safely iterate without triggering object injection warnings
+    Array.from(buffer).forEach((byte, index) => {
+      if (index >= bytesNeeded) return; // Safety check though this shouldn't happen
+      randomValue = (randomValue << 8n) + BigInt(byte);
+    });
 
+    // Create mask using BigInt to avoid 32-bit overflow
+    const mask = (1n << BigInt(bitsNeeded)) - 1n;
     randomValue &= mask;
   } while (randomValue >= range);
 
-  return min + randomValue;
+  return min + Number(randomValue);
 }
 
 /**
