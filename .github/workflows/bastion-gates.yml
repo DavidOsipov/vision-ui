@@ -20,9 +20,15 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  # 1. Manual Trigger: Allows running the workflow on demand from the Actions UI.
+  workflow_dispatch:
+  # 2. Release Trigger: Automatically runs when a new release is published.
+  # This serves as a final quality check on the code being released.
+  release:
+    types: [published]
+  # 3. Scheduled Trigger: Runs weekly as a routine health check of the main branch.
   schedule:
     - cron: '0 2 * * 0'  # Weekly on Sunday at 02:00 UTC
-  workflow_dispatch:
 
 permissions:
   pull-requests: read
