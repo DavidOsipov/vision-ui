@@ -2,6 +2,7 @@ name: Sign Release Artifacts
 
 # This workflow runs automatically when a new release is published.
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
