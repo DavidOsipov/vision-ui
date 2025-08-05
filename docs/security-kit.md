@@ -9,7 +9,7 @@
 - **ORCID:** [0009-0005-2713-9242](https://orcid.org/0009-0005-2713-9242)
 - **VIAF:** [139173726847611590332](https://viaf.org/viaf/139173726847611590332/)
 - **Wikidata:** [Q130604188](https://www.wikidata.org/wiki/Q130604188)
-- **Version:** 3.0.0
+- **Version:** 3.4.0
 
 ---
 
@@ -39,9 +39,9 @@ This library isn't just a collection of functions; it's a manifestation of a sec
 
 The most critical aspect of a security library is that it must be secure by default and prevent developers from accidentally making insecure choices.
 
-- **No Insecure Fallbacks:** The library makes a deliberate choice to **fail loudly** rather than **fail silently and insecurely**. The `ensureCrypto` and `ensureCryptoSync` functions will throw a `CryptoUnavailableError` if the Web Crypto API is not found. They **do not** fall back to `Math.random()`, which is predictable and completely unsuitable for cryptographic purposes. This is a fundamental security guarantee.
+- **No Insecure Fallbacks:** The library makes a deliberate choice to **fail loudly** rather than **fail silently and insecurely**. The internal `ensureCrypto` functions will throw a `CryptoUnavailableError` if the Web Crypto API is not found. They **do not** fall back to `Math.random()`, which is predictable and completely unsuitable for cryptographic purposes. This is a fundamental security guarantee.
 
-- **Bias-Free Random Number Generation:** Generating a random number in a range is a common source of subtle but critical bugs. A naive implementation like `random() % range` introduces **modulo bias**, making some numbers slightly more likely to appear than others. For cryptography, this is a fatal flaw. This script uses **rejection sampling** in `getSecureRandomInt`, a cryptographically sound method that guarantees a perfectly uniform distribution.
+- **Bias-Free Random Number Generation:** Generating a random number in a range is a common source of subtle but critical bugs. A naive implementation like `random() % range` introduces **modulo bias**, making some numbers slightly more likely to appear than others. For cryptography, this is a fatal flaw. This script uses **rejection sampling** in `getSecureRandomInt`, a cryptographically sound method that guarantees a perfectly uniform distribution, as verified by the test suite.
 
   ```javascript
   // Snippet from getSecureRandomInt
@@ -53,33 +53,32 @@ The most critical aspect of a security library is that it must be secure by defa
 
   This `do...while` loop is the heart of the unbiased generation, ensuring every number in the `[min, max]` range has an equal probability of being chosen.
 
-- **High-Precision Randomness:** The `getSecureRandom` function intelligently prefers `BigUint64Array` to generate a 52-bit precision float, which is the same precision as a standard double-precision float's mantissa. This provides higher-quality randomness than the 32-bit fallback, demonstrating a deep understanding of numeric precision in JavaScript.
+- **High-Precision Randomness:** The `getSecureRandom` and `getSecureRandomAsync` functions intelligently prefer `BigUint64Array` to generate a 52-bit precision float, which is the same precision as a standard double-precision float's mantissa. This provides higher-quality randomness than the 32-bit fallback, demonstrating a deep understanding of numeric precision in JavaScript.
 
-- **Adherence to Standards (RFC 4122):** The fallback implementation for `generateSecureUUID` isn't just random bytes formatted as a UUID. It correctly sets the version (4) and variant bits according to RFC 4122, ensuring the generated UUID is compliant and interoperable.
+- **Adherence to Standards (RFC 4122):** The fallback implementation for `generateSecureUUID` isn't just random bytes formatted as a UUID. It correctly sets the version (4) and variant bits according to RFC 4122, ensuring the generated UUID is compliant and interoperable. This behavior is only triggered if the native `crypto.randomUUID()` is not present.
 
   ```javascript
   // Snippet from generateSecureUUID
-  buffer[6] = (buffer[6] & 0x0f) | 0x40; // Set version to 4
-  buffer[8] = (buffer[8] & 0x3f) | 0x80; // Set variant to 10xx
+  buffer = (buffer & 0x0f) | 0x40; // Set version to 4
+  buffer = (buffer & 0x3f) | 0x80; // Set variant to 10xx
   ```
 
 ### 2. Modern, Performant, and Maintainable Code
 
 The script is a model of modern JavaScript best practices.
 
-- **Asynchronous by Default:** Most functions are `async`, leveraging `Promise`s to ensure non-blocking operations. This is crucial for performance in both browser and Node.js environments.
-- **Strategic Synchronous Alternatives:** The library provides `...Sync` versions for key functions. This shows a pragmatic understanding that in some specific scenarios (e.g., initial script setup, certain server-side contexts), a synchronous API is necessary.
-- **Efficient Caching:** The `_cachedCrypto` variable prevents redundant lookups for the crypto object, a small but meaningful performance optimization that avoids re-checking the environment on every call.
+- **Asynchronous by Default, Synchronous When Needed:** Most functions are `async`, leveraging `Promise`s to ensure non-blocking operations. The library also provides `...Sync` versions for key functions, showing a pragmatic understanding that in some specific scenarios (e.g., initial script setup), a synchronous API is necessary.
+- **Efficient Caching:** An internal `_cachedCrypto` variable prevents redundant lookups for the crypto object, a small but meaningful performance optimization.
 - **ES Modules (`import`/`export`):** The use of ES Modules enables static analysis, tree-shaking by bundlers (like Webpack or Rollup) to reduce final bundle size, and a clean, modern dependency structure.
-- **DRY (Don't Repeat Yourself) Principle:** Input validation is centralized into helper functions like `validateNumericParam` and `validateProbability`. This makes the code cleaner, easier to maintain, and ensures validation logic is consistent across the entire API.
+- **DRY (Don't Repeat Yourself) Principle:** Input validation is centralized into internal helper functions like `validateNumericParam` and `validateProbability`, making the code cleaner and easier to maintain.
 
 ### 3. Excellent Developer Experience (DX)
 
 A library is only as good as it is usable. `security-kit` is designed with the developer in mind.
 
 - **Robust and Specific Error Handling:** Instead of throwing generic `Error` or `RangeError`, the library uses custom error classes (`CryptoUnavailableError`, `InvalidParameterError`). This allows developers to write clean, specific `try...catch` blocks to handle different failure modes gracefully.
-- **Comprehensive JSDoc Comments:** Every public function is meticulously documented with JSDoc. This provides rich IntelliSense in modern editors like VS Code, explaining parameters, return types, and potential exceptions, which drastically reduces implementation errors.
-- **CSP-Safe Development Logging:** The `secureDevLog` function is a standout feature for security-conscious developers. In production, it's a no-op. In development browsers, it dispatches a `CustomEvent` instead of directly calling `console.log()`. This prevents a class of XSS attacks where an attacker could overwrite `console.log` to exfiltrate data. It's a thoughtful, professional-grade security hardening measure.
+- **Comprehensive JSDoc Comments:** Every public function is meticulously documented with JSDoc, providing rich IntelliSense in modern editors.
+- **CSP-Safe Development Logging:** The `secureDevLog` function is a standout feature. In production, it's a no-op. In development browsers, it dispatches a `CustomEvent` instead of directly calling `console.log()`. This prevents a class of XSS attacks where an attacker could overwrite `console.log` to exfiltrate data.
 
 ---
 
@@ -91,6 +90,7 @@ A library is only as good as it is usable. `security-kit` is designed with the d
 - ✅ Secure Probabilistic Throttling Helper
 - ✅ Safe Environment Detection (Development vs. Production)
 - ✅ CSP-Safe Structured Development Logging
+- ✅ Backward-Compatibility Aliases
 
 ## API Documentation
 
@@ -110,7 +110,6 @@ Asynchronously generates a cryptographically secure random ID using hexadecimal 
 - **Throws**: `InvalidParameterError`, `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { generateSecureId } from "security-kit";
 
@@ -127,7 +126,6 @@ Synchronously generates a cryptographically secure random ID. Use this only when
 - **Throws**: `InvalidParameterError`, `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { generateSecureIdSync } from "security-kit";
 
@@ -137,13 +135,12 @@ console.log(myId); // e.g., 'b8d2e6f0a1c9'
 
 ### `generateSecureUUID(): Promise<string>`
 
-Asynchronously generates a cryptographically secure v4 UUID. It uses the native `crypto.randomUUID()` where available, otherwise it uses a secure fallback implementation based on `crypto.getRandomValues()`.
+Asynchronously generates a cryptographically secure v4 UUID. It uses the native `crypto.randomUUID()` where available, otherwise it uses a secure, RFC 4122-compliant fallback based on `crypto.getRandomValues()`.
 
 - **Returns**: A `Promise` that resolves with a 36-character v4 UUID.
 - **Throws**: `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { generateSecureUUID } from "security-kit";
 
@@ -153,7 +150,7 @@ console.log(myUuid); // e.g., '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed'
 
 ### `getSecureRandomInt(min: number, max: number): Promise<number>`
 
-Asynchronously generates a secure random integer within a specified inclusive range `[min, max]`. This function uses **rejection sampling** to avoid modulo bias, ensuring a perfectly uniform distribution.
+Asynchronously generates a secure random integer within an inclusive range `[min, max]`. This function uses **rejection sampling** to avoid modulo bias, ensuring a perfectly uniform distribution.
 
 - **`min`**: The minimum integer value.
 - **`max`**: The maximum integer value.
@@ -161,7 +158,6 @@ Asynchronously generates a secure random integer within a specified inclusive ra
 - **Throws**: `InvalidParameterError`, `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { getSecureRandomInt } from "security-kit";
 
@@ -177,7 +173,6 @@ Asynchronously generates a cryptographically secure random floating-point number
 - **Throws**: `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { getSecureRandomAsync } from "security-kit";
 
@@ -193,7 +188,6 @@ Synchronously generates a cryptographically secure random floating-point number 
 - **Throws**: `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { getSecureRandom } from "security-kit";
 
@@ -203,14 +197,13 @@ console.log(randomChance);
 
 ### `shouldExecuteThrottledAsync(probability: number): Promise<boolean>`
 
-Asynchronously determines if an action should execute based on a given probability. Useful for secure, probabilistic sampling or feature throttling.
+Asynchronously determines if an action should execute based on a given probability.
 
 - **`probability`**: A number between 0 and 1.
 - **Returns**: A `Promise` that resolves with `true` or `false`.
 - **Throws**: `InvalidParameterError`, `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { shouldExecuteThrottledAsync } from "security-kit";
 
@@ -229,25 +222,22 @@ Synchronously determines if an action should execute based on a given probabilit
 - **Throws**: `InvalidParameterError`, `CryptoUnavailableError`.
 
 **Example:**
-
 ```javascript
 import { shouldExecuteThrottled } from "security-kit";
 
 // Log data for approximately 1% of requests
 if (shouldExecuteThrottled(0.01)) {
   // Log performance data
-}
-```
+}```
 
 ### `environment`
 
 An object that provides cached, safe detection of the current runtime environment.
 
-- **`environment.isDevelopment`**: `boolean` - Returns `true` if the environment is determined to be for development (e.g., `NODE_ENV` is 'development', hostname is `localhost`).
+- **`environment.isDevelopment`**: `boolean` - Returns `true` if the environment is determined to be for development.
 - **`environment.isProduction`**: `boolean` - Returns `true` if the environment is not a development one.
 
 **Example:**
-
 ```javascript
 import { environment } from "security-kit";
 
@@ -258,7 +248,7 @@ if (environment.isProduction) {
 
 ### `secureDevLog(level, component, message, context = {})`
 
-A structured, CSP-safe logging utility that **only runs in development environments**. In production, it does nothing. In a browser, it dispatches a `CustomEvent` to avoid direct `console` access, which can be a security risk. In Node.js, it uses the corresponding `console` method.
+A structured, CSP-safe logging utility that **only runs in development environments**. In production, it does nothing.
 
 - **`level`**: `'debug' | 'info' | 'warn' | 'error'`
 - **`component`**: `string` - The name of the component logging the message.
@@ -266,7 +256,6 @@ A structured, CSP-safe logging utility that **only runs in development environme
 - **`context`**: `object` - Additional structured data to include.
 
 **Example:**
-
 ```javascript
 import { secureDevLog } from "security-kit";
 
@@ -278,6 +267,24 @@ document.addEventListener("secure-dev-log", (e) => {
 });
 ```
 
+### Backward Compatibility & Aliases
+
+To support older versions and provide convenience, the following aliases are also exported. New code should prefer the modern APIs (e.g., `environment.isDevelopment` and `secureDevLog`).
+
+- **`isDevelopment: boolean`**: A direct alias for `environment.isDevelopment`.
+- **`secureDevNotify(type, component, data = {})`**: An alias for `secureDevLog`. It calls `secureDevLog(type, component, "Legacy notification", data)`.
+
+### Default Export
+
+For convenience, a default export is provided which contains the most commonly used functions.
+
+```javascript
+import securityKit from "security-kit";
+
+const id = await securityKit.generateSecureId();
+const isDev = securityKit.environment.isDevelopment;
+```
+
 ---
 
 ## Environment Support
@@ -285,14 +292,16 @@ document.addEventListener("secure-dev-log", (e) => {
 This module requires an environment that supports the **Web Crypto API**. This includes:
 
 - **Modern Browsers:** Chrome 37+, Firefox 34+, Safari 7.1+, Edge 12+.
-- **Node.js:** The `crypto.webcrypto` module is available in recent versions of Node.js.
+- **Node.js:** Recent versions that include the `crypto.webcrypto` module.
 - **Web Workers & Service Workers:** The API is accessible in these contexts.
 
-The library will not work in older environments like Internet Explorer 10 or below.
+The library will not work in older environments like Internet Explorer.
 
 ## Author and License
 
 - **Author:** David Osipov
 - **ISNI:** 0000 0005 1802 960X ([International Standard Name Identifier](https://isni.org/isni/000000051802960X))
 - **Contact:** <personal@david-osipov.vision>
-- **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard, which is a machine-readable way to declare licenses.
+- **License:** MIT License. The license is specified using the [SPDX-License-Identifier](https://spdx.org/licenses/) standard.
+
+```
