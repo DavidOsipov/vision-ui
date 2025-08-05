@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Security: Hardened](https://img.shields.io/badge/Security-Hardened-brightgreen)](./docs/03-security-kit.md)
+[![DOI](https://zenodo.org/badge/1032156503.svg)](https://doi.org/10.5281/zenodo.16741212)
 
 Vision UI is a collection of enterprise-grade, dependency-free modules for modern web projects. Each component is engineered for maximum performance, security, and accessibility, designed to be dropped into any project (Astro, Eleventy, vanilla HTML) with minimal configuration.
 
