@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // --- Project Structure & Module Settings ---
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    // --- Core Type-Checking Configuration for JavaScript ---
+    "allowJs": true,          // Allow JavaScript files to be processed.
+    "checkJs": true,          // Enable type-checking for .js files. This is the key!
+    "noEmit": true,           // Do not generate output files; we only want to type-check.
+    "declaration": false,     // Do not generate .d.ts files from JSDoc.
+
+    // --- Strictness & Quality Rules (based on your strictest config) ---
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+    "exactOptionalPropertyTypes": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    // --- Library & Interop Settings ---
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*"], // Only check files within the 'src' directory
+  "exclude": ["node_modules"]
+}
