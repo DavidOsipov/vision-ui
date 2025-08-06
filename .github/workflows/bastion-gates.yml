@@ -191,7 +191,7 @@ jobs:
 
       - name: Download all analysis reports
         # Pinned to commit SHA for v4.1.8 for security and reproducibility.
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@de96f4613b77ec03b5cf633e7c350c32bd3c5660
         with:
           # Downloads all artifacts from the 'Analyze' and 'Test-and-Coverage' jobs
           # into the 'reports' directory.
