@@ -37,7 +37,7 @@ jobs:
       # 2. Check out the repository code at the specific release tag determined above.
       # Pinned to the commit SHA for v4.1.7
       - name: Checkout repository at specified tag
-        uses: actions/checkout@8edcb1bdb4e267140fa742c62e395cd74f332709
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           ref: ${{ steps.vars.outputs.tag }}
 
