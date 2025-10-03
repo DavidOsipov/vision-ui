@@ -154,7 +154,7 @@ jobs:
       - name: Setup Snyk CLI
         if: matrix.tool == 'snyk'
         # Pinned to a specific commit for security and reproducibility
-        uses: snyk/actions/setup@77490d94e966421e076e95ad8fa87aa55e5ca409
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04
 
       - name: Run Snyk Open Source Scan
         if: matrix.tool == 'snyk'
