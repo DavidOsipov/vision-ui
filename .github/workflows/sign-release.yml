@@ -51,7 +51,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@5e2628c959b9ade56971c0afcebbe5332d44b398
         with:
-          node-version: "22.18.0"
+          node-version: "22.23.2"
 
       # 5. Automatically find and sign all relevant files.
       # This step replaces the manual file list with an automated `find` command.
